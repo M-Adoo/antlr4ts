@@ -20,7 +20,7 @@ import { Recognizer } from "../Recognizer";
 import { RuleContext } from "../RuleContext";
 import { RuleTransition } from "./RuleTransition";
 
-import * as assert from "assert";
+// import * as assert from "assert";
 
 const INITIAL_HASH: number = 1;
 
@@ -164,7 +164,7 @@ export abstract class PredictionContext implements Equatable {
 				canReturnRight = false;
 				leftIndex++;
 			} else {
-				assert(context1.getReturnState(rightIndex) < context0.getReturnState(leftIndex));
+				// assert(context1.getReturnState(rightIndex) < context0.getReturnState(leftIndex));
 				parentsList[count] = context1.getParent(rightIndex);
 				returnStatesList[count] = context1.getReturnState(rightIndex);
 				canReturnLeft = false;
@@ -449,8 +449,8 @@ class ArrayPredictionContext extends PredictionContext {
 
 	constructor( @NotNull parents: PredictionContext[], returnStates: number[], hashCode?: number) {
 		super(hashCode || PredictionContext.calculateHashCode(parents, returnStates));
-		assert(parents.length === returnStates.length);
-		assert(returnStates.length > 1 || returnStates[0] !== PredictionContext.EMPTY_FULL_STATE_KEY, "Should be using PredictionContext.EMPTY instead.");
+		// assert(parents.length === returnStates.length);
+		// assert(returnStates.length > 1 || returnStates[0] !== PredictionContext.EMPTY_FULL_STATE_KEY, "Should be using PredictionContext.EMPTY instead.");
 
 		this.parents = parents;
 		this.returnStates = returnStates;
@@ -559,7 +559,7 @@ class ArrayPredictionContext extends PredictionContext {
 				if (updatedParents.length === 1) {
 					result = new SingletonPredictionContext(updatedParents[0], updatedReturnStates[0]);
 				} else {
-					assert(updatedParents.length > 1);
+					// assert(updatedParents.length > 1);
 					result = new ArrayPredictionContext(updatedParents, updatedReturnStates);
 				}
 

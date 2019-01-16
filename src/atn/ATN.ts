@@ -23,8 +23,8 @@ import { RuleStopState } from "./RuleStopState";
 import { RuleTransition } from "./RuleTransition";
 import { Token } from "../Token";
 import { TokensStartState } from "./TokensStartState";
+// import * as assert from "assert";
 
-import * as assert from "assert";
 
 /** */
 export class ATN {
@@ -120,7 +120,7 @@ export class ATN {
 	}
 
 	public getDecisionToDFA(): DFA[] {
-		assert(this.decisionToDFA != null && this.decisionToDFA.length === this.decisionToState.length);
+		// assert(this.decisionToDFA != null && this.decisionToDFA.length === this.decisionToState.length);
 		return this.decisionToDFA;
 	}
 

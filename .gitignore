@@ -59,3 +59,4 @@ bin/
 
 # NPM pack output
 *.tgz
+.rpt2_cache/*

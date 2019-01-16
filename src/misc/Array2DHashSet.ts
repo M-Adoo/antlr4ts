@@ -5,7 +5,7 @@
 
 // ConvertTo-TS run at 2016-10-03T02:09:41.7434086-07:00
 
-import * as assert from "assert";
+// import * as assert from "assert";
 import { DefaultEqualityComparator } from "./DefaultEqualityComparator";
 import { EqualityComparator } from "./EqualityComparator";
 import { NotNull, Nullable, Override, SuppressWarnings } from "../Decorators";
@@ -180,7 +180,7 @@ export class Array2DHashSet<T> implements JavaSet<T> {
 			}
 		}
 
-		assert(this.n === oldSize);
+		// assert(this.n === oldSize);
 	}
 
 	@Override

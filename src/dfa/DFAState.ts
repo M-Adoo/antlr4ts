@@ -15,7 +15,7 @@ import { NotNull, Override } from "../Decorators";
 import { PredictionContext } from "../atn/PredictionContext";
 import { SemanticContext } from "../atn/SemanticContext";
 
-import * as assert from "assert";
+// import * as assert from "assert";
 
 /** A DFA state represents a set of possible ATN configurations.
  *  As Aho, Sethi, Ullman p. 117 says "The DFA uses its state
@@ -90,12 +90,12 @@ export class DFAState {
 	}
 
 	public setContextSymbol(symbol: number): void {
-		assert(this.isContextSensitive);
+		// assert(this.isContextSensitive);
 		this.contextSymbols!.set(symbol);
 	}
 
 	public setContextSensitive(atn: ATN): void {
-		assert(!this.configs.isOutermostConfigSet);
+		// assert(!this.configs.isOutermostConfigSet);
 		if (this.isContextSensitive) {
 			return;
 		}

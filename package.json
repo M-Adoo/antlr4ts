@@ -43,7 +43,8 @@
     "benchmark-core": "node target/benchmark/TestPerformance.js",
     "preprofile": "npm run antlr4ts-benchmark && tsc",
     "profile": "npm run profile-core",
-    "profile-core": "node --prof target/benchmark/TestPerformance.js"
+    "profile-core": "node --prof target/benchmark/TestPerformance.js",
+    "build": "tsc && rollup -c rollup.config.js"
   },
   "sideEffects": false,
   "repository": {
@@ -71,6 +72,13 @@
     "mocha": "^5.2.0",
     "mocha-typescript": "^1.1.14",
     "nyc": "^13.1.0",
+    "rollup": "^1.1.0",
+    "rollup-plugin-commonjs": "^9.2.0",
+    "rollup-plugin-json": "^3.1.0",
+    "rollup-plugin-node-builtins": "^2.1.2",
+    "rollup-plugin-node-resolve": "^4.0.0",
+    "rollup-plugin-sourcemaps": "^0.4.2",
+    "rollup-plugin-typescript2": "^0.18.1",
     "source-map-support": "^0.5.6",
     "std-mocks": "^1.0.1",
     "tslint": "^5.11.0",

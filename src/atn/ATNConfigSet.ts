@@ -21,8 +21,7 @@ import { ObjectEqualityComparator } from "../misc/ObjectEqualityComparator";
 import { PredictionContext } from "./PredictionContext";
 import { PredictionContextCache } from "./PredictionContextCache";
 import { SemanticContext } from "./SemanticContext";
-
-import * as assert from "assert";
+// import * as assert from "assert";
 import * as Utils from "../misc/Utils";
 
 interface KeyType { state: number; alt: number; }
@@ -174,7 +173,7 @@ export class ATNConfigSet implements JavaSet<ATNConfig> {
 			throw new Error("IllegalStateException");
 		}
 
-		assert(!outermostConfigSet || !this._dipsIntoOuterContext);
+		// assert(!outermostConfigSet || !this._dipsIntoOuterContext);
 		this.outermostConfigSet = outermostConfigSet;
 	}
 
@@ -264,7 +263,7 @@ export class ATNConfigSet implements JavaSet<ATNConfig> {
 			throw new Error("Covered by ensureWritable but duplicated here for strict null check limitation");
 		}
 
-		assert(!this.outermostConfigSet || !e.reachesIntoOuterContext);
+		// assert(!this.outermostConfigSet || !e.reachesIntoOuterContext);
 
 		if (contextCache == null) {
 			contextCache = PredictionContextCache.UNCACHED;
@@ -329,7 +328,7 @@ export class ATNConfigSet implements JavaSet<ATNConfig> {
 	private updatePropertiesForMergedConfig(config: ATNConfig): void {
 		// merged configs can't change the alt or semantic context
 		this._dipsIntoOuterContext = this._dipsIntoOuterContext || config.reachesIntoOuterContext;
-		assert(!this.outermostConfigSet || !this._dipsIntoOuterContext);
+		// assert(!this.outermostConfigSet || !this._dipsIntoOuterContext);
 	}
 
 	private updatePropertiesForAddedConfig(config: ATNConfig): void {
@@ -341,7 +340,7 @@ export class ATNConfigSet implements JavaSet<ATNConfig> {
 
 		this._hasSemanticContext = this._hasSemanticContext || !SemanticContext.NONE.equals(config.semanticContext);
 		this._dipsIntoOuterContext = this._dipsIntoOuterContext || config.reachesIntoOuterContext;
-		assert(!this.outermostConfigSet || !this._dipsIntoOuterContext);
+		// assert(!this.outermostConfigSet || !this._dipsIntoOuterContext);
 	}
 
 	protected canMerge(left: ATNConfig, leftKey: { state: number, alt: number }, right: ATNConfig): boolean {

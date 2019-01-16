@@ -5,7 +5,7 @@
 
 // ConvertTo-TS run at 2016-10-04T11:26:52.4399193-07:00
 
-import * as assert from "assert";
+// import * as assert from "assert";
 import * as Utils from "./misc/Utils";
 
 import { ANTLRErrorListener } from "./ANTLRErrorListener";
@@ -39,6 +39,8 @@ import { Token } from "./Token";
 import { TokenFactory } from "./TokenFactory";
 import { TokenSource } from "./TokenSource";
 import { TokenStream } from "./TokenStream";
+import { ProfilingATNSimulator } from "./atn/ProfilingATNSimulator";
+import { ParseTreePatternMatcher } from "./tree/pattern/ParseTreePatternMatcher";
 
 class TraceListener implements ParseTreeListener {
 	constructor(private ruleNames: string[], private tokenStream: TokenStream) {
@@ -444,8 +446,7 @@ export abstract class Parser extends Recognizer<Token, ParserATNSimulator> {
 		}
 
 		let currentLexer = lexer;
-		let m = await import("./tree/pattern/ParseTreePatternMatcher");
-		let matcher = new m.ParseTreePatternMatcher(currentLexer, this);
+		let matcher = new ParseTreePatternMatcher(currentLexer, this);
 		return matcher.compile(pattern, patternRuleIndex);
 	}
 
@@ -852,13 +853,12 @@ export abstract class Parser extends Recognizer<Token, ParserATNSimulator> {
 
 	@Override
 	get parseInfo(): Promise<ParseInfo | undefined> {
-		return import("./atn/ProfilingATNSimulator").then((m) => {
+		return new Promise((resolve, reject) => {
 			let interp: ParserATNSimulator = this.interpreter;
-			if (interp instanceof m.ProfilingATNSimulator) {
-				return new ParseInfo(interp);
+			if (interp instanceof ProfilingATNSimulator) {
+				resolve(new ParseInfo(interp));
 			}
-
-			return undefined;
+			resolve();
 		});
 	}
 
@@ -866,13 +866,12 @@ export abstract class Parser extends Recognizer<Token, ParserATNSimulator> {
 	 * @since 4.3
 	 */
 	public async setProfile(profile: boolean): Promise<void> {
-		let m = await import("./atn/ProfilingATNSimulator");
 		let interp: ParserATNSimulator = this.interpreter;
 		if (profile) {
-			if (!(interp instanceof m.ProfilingATNSimulator)) {
-				this.interpreter = new m.ProfilingATNSimulator(this);
+			if (!(interp instanceof ProfilingATNSimulator)) {
+				this.interpreter = new ProfilingATNSimulator(this);
 			}
-		} else if (interp instanceof m.ProfilingATNSimulator) {
+		} else if (interp instanceof ProfilingATNSimulator) {
 			this.interpreter = new ParserATNSimulator(this.atn, this);
 		}
 

@@ -5,7 +5,7 @@
 
 // ConvertTo-TS run at 2016-10-04T11:26:49.6074365-07:00
 
-import assert = require("assert");
+// import assert = require("assert");
 import { CommonToken } from "./CommonToken";
 import { Interval } from "./misc/Interval";
 import { Lexer } from "./Lexer";
@@ -147,7 +147,7 @@ export class BufferedTokenStream implements TokenStream {
 	 * @see #get(int i)
 	 */
 	protected sync(i: number): boolean {
-		assert(i >= 0);
+		// assert(i >= 0);
 		let n: number = i - this.tokens.length + 1; // how many more elements we need?
 		//System.out.println("sync("+i+") needs "+n);
 		if (n > 0) {

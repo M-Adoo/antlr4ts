@@ -17,8 +17,8 @@ import { PredictionContext } from "./PredictionContext";
 import { PredictionContextCache } from "./PredictionContextCache";
 import { Recognizer } from "../Recognizer";
 import { SemanticContext } from "./SemanticContext";
+// import * as assert from "assert";
 
-import * as assert from "assert";
 
 /**
  * This field stores the bit mask for implementing the
@@ -82,7 +82,7 @@ export class ATNConfig implements Equatable {
 
 	constructor(@NotNull state: ATNState, altOrConfig: number | ATNConfig, @NotNull context: PredictionContext) {
 		if (typeof altOrConfig === "number") {
-			assert((altOrConfig & 0xFFFFFF) === altOrConfig);
+			// assert((altOrConfig & 0xFFFFFF) === altOrConfig);
 			this._state = state;
 			this.altAndOuterContextDepth = altOrConfig;
 			this._context = context;
@@ -156,7 +156,7 @@ export class ATNConfig implements Equatable {
 	}
 
 	set outerContextDepth(outerContextDepth: number) {
-		assert(outerContextDepth >= 0);
+		// assert(outerContextDepth >= 0);
 		// saturate at 0x7F - everything but zero/positive is only used for debug information anyway
 		outerContextDepth = Math.min(outerContextDepth, 0x7F);
 		this.altAndOuterContextDepth = ((outerContextDepth << 24) | (this.altAndOuterContextDepth & ~0x7F000000) >>> 0);

@@ -29,7 +29,7 @@ import { RuleTransition } from "./RuleTransition";
 import { Token } from "../Token";
 import { Transition } from "./Transition";
 import { TransitionType } from "./TransitionType";
-import * as assert from "assert";
+// import * as assert from "assert";
 
 /** "dup" of ParserInterpreter */
 export class LexerATNSimulator extends ATNSimulator {
@@ -307,7 +307,7 @@ export class LexerATNSimulator extends ATNSimulator {
 						lexerActionExecutor = lexerActionExecutor.fixOffsetBeforeMatch(input.index - this.startIndex);
 						config = c.transform(target, true, lexerActionExecutor);
 					} else {
-						assert(c.lexerActionExecutor == null);
+						// assert(c.lexerActionExecutor == null);
 						config = c.transform(target, true);
 					}
 
@@ -647,7 +647,7 @@ export class LexerATNSimulator extends ATNSimulator {
 		/* the lexer evaluates predicates on-the-fly; by this point configs
 		 * should not contain any configurations with unevaluated predicates.
 		 */
-		assert(!configs.hasSemanticContext);
+		// assert(!configs.hasSemanticContext);
 
 		let proposed: DFAState = new DFAState(configs);
 		let existing: DFAState | undefined = this.atn.modeToDFA[this.mode].states.get(proposed);
