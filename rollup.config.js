@@ -4,6 +4,7 @@ import sourceMaps from "rollup-plugin-sourcemaps";
 import typescript from "rollup-plugin-typescript2";
 import json from "rollup-plugin-json";
 import builtins from 'rollup-plugin-node-builtins';
+import babel from 'rollup-plugin-babel';
 
 export default {
 	// Indicate here external modules you don't wanna include in your bundle (i.e.: 'lodash')
@@ -29,8 +30,12 @@ export default {
 		// Resolve source maps to the original source
 		sourceMaps(),
 		builtins(),
+		babel({
+			exclude: 'node_modules/**'
+		})
 	],
 	watch: {
 		include: "src/**",
 	},
+
 };

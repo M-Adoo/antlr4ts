@@ -39,8 +39,15 @@ import { Token } from "./Token";
 import { TokenFactory } from "./TokenFactory";
 import { TokenSource } from "./TokenSource";
 import { TokenStream } from "./TokenStream";
-import { ProfilingATNSimulator } from "./atn/ProfilingATNSimulator";
-import { ParseTreePatternMatcher } from "./tree/pattern/ParseTreePatternMatcher";
+import { DecisionInfo, SimulatorState, LookaheadEventInfo, PredictionContextCache, ErrorInfo, SemanticContext, PredicateEvalInfo, ContextSensitivityInfo, ATNConfigSet, AmbiguityInfo } from "./atn";
+import { BitSet, MultiMap, ParseCancellationException } from "./misc";
+import { DFAState } from "./dfa";
+import { ParseTree, RuleNode } from "./tree";
+import { ParseTreeMatch, TokenTagToken, RuleTagToken } from "./tree/pattern";
+import { ListTokenSource, CommonTokenStream, ParserInterpreter, BailErrorStrategy, ANTLRInputStream } from ".";
+import { TagChunk } from "./tree/pattern/TagChunk";
+import { TextChunk } from "./tree/pattern/TextChunk";
+import { Chunk } from "./tree/pattern/Chunk";
 
 class TraceListener implements ParseTreeListener {
 	constructor(private ruleNames: string[], private tokenStream: TokenStream) {
@@ -68,6 +75,707 @@ class TraceListener implements ParseTreeListener {
 		let parent = node.parent!.ruleContext;
 		let token: Token = node.symbol;
 		console.log("consume " + token + " rule " + this.ruleNames[parent.ruleIndex]);
+	}
+}
+
+export class ParseTreePatternMatcher {
+	/**
+	 * This is the backing field for `lexer`.
+	 */
+	private _lexer: Lexer;
+
+	/**
+	 * This is the backing field for `parser`.
+	 */
+	private _parser: Parser;
+
+	protected start = "<";
+	protected stop = ">";
+	protected escape = "\\"; // e.g., \< and \> must escape BOTH!
+
+	/**
+	 * Regular expression corresponding to escape, for global replace
+	 */
+	protected escapeRE = /\\/g;
+
+	/**
+	 * Constructs a {@link ParseTreePatternMatcher} or from a {@link Lexer} and
+	 * {@link Parser} object. The lexer input stream is altered for tokenizing
+	 * the tree patterns. The parser is used as a convenient mechanism to get
+	 * the grammar name, plus token, rule names.
+	 */
+	constructor(lexer: Lexer, parser: Parser) {
+		this._lexer = lexer;
+		this._parser = parser;
+	}
+
+	/**
+	 * Set the delimiters used for marking rule and token tags within concrete
+	 * syntax used by the tree pattern parser.
+	 *
+	 * @param start The start delimiter.
+	 * @param stop The stop delimiter.
+	 * @param escapeLeft The escape sequence to use for escaping a start or stop delimiter.
+	 *
+	 * @throws {@link Error} if `start` is not defined or empty.
+	 * @throws {@link Error} if `stop` is not defined or empty.
+	 */
+	public setDelimiters(start: string, stop: string, escapeLeft: string): void {
+		if (!start) {
+			throw new Error("start cannot be null or empty");
+		}
+
+		if (!stop) {
+			throw new Error("stop cannot be null or empty");
+		}
+
+		this.start = start;
+		this.stop = stop;
+		this.escape = escapeLeft;
+		this.escapeRE = new RegExp(escapeLeft.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g");
+	}
+
+	/** Does `pattern` matched as rule `patternRuleIndex` match `tree`? */
+	public matches(tree: ParseTree, pattern: string, patternRuleIndex: number): boolean;
+
+	/** Does `pattern` matched as rule patternRuleIndex match tree? Pass in a
+	 *  compiled pattern instead of a string representation of a tree pattern.
+	 */
+	public matches(tree: ParseTree, pattern: ParseTreePattern): boolean;
+
+	public matches(tree: ParseTree, pattern: string | ParseTreePattern, patternRuleIndex: number = 0): boolean {
+		if (typeof pattern === "string") {
+			let p: ParseTreePattern = this.compile(pattern, patternRuleIndex);
+			return this.matches(tree, p);
+		} else {
+			let labels = new MultiMap<string, ParseTree>();
+			let mismatchedNode = this.matchImpl(tree, pattern.patternTree, labels);
+			return !mismatchedNode;
+		}
+	}
+
+	/**
+	 * Compare `pattern` matched as rule `patternRuleIndex` against
+	 * `tree` and return a {@link ParseTreeMatch} object that contains the
+	 * matched elements, or the node at which the match failed.
+	 */
+	public match(tree: ParseTree, pattern: string, patternRuleIndex: number): ParseTreeMatch;
+
+	/**
+	 * Compare `pattern` matched against `tree` and return a
+	 * {@link ParseTreeMatch} object that contains the matched elements, or the
+	 * node at which the match failed. Pass in a compiled pattern instead of a
+	 * string representation of a tree pattern.
+	 */
+	public match(tree: ParseTree, pattern: ParseTreePattern): ParseTreeMatch;
+
+	// Implementation of match
+	@NotNull
+	public match(tree: ParseTree, @NotNull pattern: string | ParseTreePattern, patternRuleIndex: number = 0): ParseTreeMatch {
+		if (typeof pattern === "string") {
+			let p: ParseTreePattern = this.compile(pattern, patternRuleIndex);
+			return this.match(tree, p);
+		} else {
+			let labels = new MultiMap<string, ParseTree>();
+			let mismatchedNode = this.matchImpl(tree, pattern.patternTree, labels);
+			return new ParseTreeMatch(tree, pattern, labels, mismatchedNode);
+		}
+	}
+
+	/**
+	 * For repeated use of a tree pattern, compile it to a
+	 * {@link ParseTreePattern} using this method.
+	 */
+	public compile(pattern: string, patternRuleIndex: number): ParseTreePattern {
+		let tokenList = this.tokenize(pattern);
+		let tokenSrc = new ListTokenSource(tokenList);
+		let tokens = new CommonTokenStream(tokenSrc);
+		const parser = this._parser;
+
+		let parserInterp = new ParserInterpreter(
+			parser.grammarFileName,
+			parser.vocabulary,
+			parser.ruleNames,
+			parser.getATNWithBypassAlts(),
+			tokens);
+
+		let tree: ParseTree;
+		try {
+			parserInterp.errorHandler = new BailErrorStrategy();
+			tree = parserInterp.parse(patternRuleIndex);
+//			System.out.println("pattern tree = "+tree.toStringTree(parserInterp));
+		} catch (e) {
+			if (e instanceof ParseCancellationException) {
+				throw e.getCause();
+			} else if (e instanceof RecognitionException) {
+				throw e;
+			} else if (e instanceof Error) {
+				throw new ParseTreePatternMatcher.CannotInvokeStartRule(e);
+			} else {
+				throw e;
+			}
+		}
+
+		// Make sure tree pattern compilation checks for a complete parse
+		if (tokens.LA(1) !== Token.EOF) {
+			throw new ParseTreePatternMatcher.StartRuleDoesNotConsumeFullPattern();
+		}
+
+		return new ParseTreePattern(this, pattern, patternRuleIndex, tree);
+	}
+
+	/**
+	 * Used to convert the tree pattern string into a series of tokens. The
+	 * input stream is reset.
+	 */
+	@NotNull
+	get lexer(): Lexer {
+		return this._lexer;
+	}
+
+	/**
+	 * Used to collect to the grammar file name, token names, rule names for
+	 * used to parse the pattern into a parse tree.
+	 */
+	@NotNull
+	get parser(): Parser {
+		return this._parser;
+	}
+
+	// ---- SUPPORT CODE ----
+
+	/**
+	 * Recursively walk `tree` against `patternTree`, filling
+	 * `match.`{@link ParseTreeMatch#labels labels}.
+	 *
+	 * @returns the first node encountered in `tree` which does not match
+	 * a corresponding node in `patternTree`, or `undefined` if the match
+	 * was successful. The specific node returned depends on the matching
+	 * algorithm used by the implementation, and may be overridden.
+	 */
+	protected matchImpl(
+		@NotNull tree: ParseTree,
+		@NotNull patternTree: ParseTree,
+		@NotNull labels: MultiMap<string, ParseTree>): ParseTree | undefined {
+		if (!tree) {
+			throw new TypeError("tree cannot be null");
+		}
+
+		if (!patternTree) {
+			throw new TypeError("patternTree cannot be null");
+		}
+
+		// x and <ID>, x and y, or x and x; or could be mismatched types
+		if (tree instanceof TerminalNode && patternTree instanceof TerminalNode) {
+			let mismatchedNode: ParseTree | undefined;
+			// both are tokens and they have same type
+			if (tree.symbol.type === patternTree.symbol.type) {
+				if (patternTree.symbol instanceof TokenTagToken) { // x and <ID>
+					let tokenTagToken = patternTree.symbol;
+					// track label->list-of-nodes for both token name and label (if any)
+					labels.map(tokenTagToken.tokenName, tree);
+					const l = tokenTagToken.label;
+					if (l) {
+						labels.map(l, tree);
+					}
+				}
+				else if (tree.text === patternTree.text) {
+					// x and x
+				}
+				else {
+					// x and y
+					if (!mismatchedNode) {
+						mismatchedNode = tree;
+					}
+				}
+			}
+			else {
+				if (!mismatchedNode) {
+					mismatchedNode = tree;
+				}
+			}
+
+			return mismatchedNode;
+		}
+
+		if (tree instanceof ParserRuleContext
+			&& patternTree instanceof ParserRuleContext) {
+			let mismatchedNode: ParseTree | undefined;
+			// (expr ...) and <expr>
+			let ruleTagToken = this.getRuleTagToken(patternTree);
+			if (ruleTagToken) {
+				let m: ParseTreeMatch;
+				if (tree.ruleContext.ruleIndex === patternTree.ruleContext.ruleIndex) {
+					// track label->list-of-nodes for both rule name and label (if any)
+					labels.map(ruleTagToken.ruleName, tree);
+					const l = ruleTagToken.label;
+					if (l) {
+						labels.map(l, tree);
+					}
+				}
+				else {
+					if (!mismatchedNode) {
+						mismatchedNode = tree;
+					}
+				}
+
+				return mismatchedNode;
+			}
+
+			// (expr ...) and (expr ...)
+			if (tree.childCount !== patternTree.childCount) {
+				if (!mismatchedNode) {
+					mismatchedNode = tree;
+				}
+
+				return mismatchedNode;
+			}
+
+			let n: number = tree.childCount;
+			for (let i = 0; i < n; i++) {
+				let childMatch = this.matchImpl(tree.getChild(i), patternTree.getChild(i), labels);
+				if (childMatch) {
+					return childMatch;
+				}
+			}
+
+			return mismatchedNode;
+		}
+
+		// if nodes aren't both tokens or both rule nodes, can't match
+		return tree;
+	}
+
+	/** Is `t` `(expr <expr>)` subtree? */
+	protected getRuleTagToken(t: ParseTree): RuleTagToken | undefined {
+		if (t instanceof RuleNode) {
+			if (t.childCount === 1 && t.getChild(0) instanceof TerminalNode) {
+				let c = t.getChild(0) as TerminalNode;
+				if (c.symbol instanceof RuleTagToken) {
+//					System.out.println("rule tag subtree "+t.toStringTree(parser));
+					return c.symbol;
+				}
+			}
+		}
+		return undefined;
+	}
+
+	public tokenize(pattern: string): Token[] {
+		// split pattern into chunks: sea (raw input) and islands (<ID>, <expr>)
+		let chunks = this.split(pattern);
+
+		// create token stream from text and tags
+		let tokens: Token[] = [];
+
+		for (let chunk of chunks) {
+			if (chunk instanceof TagChunk) {
+				let tagChunk = chunk;
+				const firstChar = tagChunk.tag.substr(0, 1);
+				// add special rule token or conjure up new token from name
+				if (firstChar === firstChar.toUpperCase()) {
+					let ttype: number = this._parser.getTokenType(tagChunk.tag);
+					if (ttype === Token.INVALID_TYPE) {
+						throw new Error("Unknown token " + tagChunk.tag + " in pattern: " + pattern);
+					}
+					let t: TokenTagToken = new TokenTagToken(tagChunk.tag, ttype, tagChunk.label);
+					tokens.push(t);
+				}
+				else if (firstChar === firstChar.toLowerCase()) {
+					let ruleIndex: number = this._parser.getRuleIndex(tagChunk.tag);
+					if (ruleIndex === -1) {
+						throw new Error("Unknown rule " + tagChunk.tag + " in pattern: " + pattern);
+					}
+					let ruleImaginaryTokenType: number = this._parser.getATNWithBypassAlts().ruleToTokenType[ruleIndex];
+					tokens.push(new RuleTagToken(tagChunk.tag, ruleImaginaryTokenType, tagChunk.label));
+				}
+				else {
+					throw new Error("invalid tag: " + tagChunk.tag + " in pattern: " + pattern);
+				}
+			}
+			else {
+				let textChunk = chunk as TextChunk;
+				let input = new ANTLRInputStream(textChunk.text);
+				this._lexer.inputStream = input;
+				let t: Token = this._lexer.nextToken();
+				while (t.type !== Token.EOF) {
+					tokens.push(t);
+					t = this._lexer.nextToken();
+				}
+			}
+		}
+
+//		System.out.println("tokens="+tokens);
+		return tokens;
+	}
+
+	/** Split `<ID> = <e:expr> ;` into 4 chunks for tokenizing by {@link #tokenize}. */
+	public split(pattern: string): Chunk[] {
+		let p: number = 0;
+		let n: number = pattern.length;
+		let chunks: Chunk[] = [];
+		let buf: "";
+		// find all start and stop indexes first, then collect
+		let starts: number[] = [];
+		let stops: number[] = [];
+		while (p < n) {
+			if (p === pattern.indexOf(this.escape + this.start, p)) {
+				p += this.escape.length + this.start.length;
+			}
+			else if (p === pattern.indexOf(this.escape + this.stop, p)) {
+				p += this.escape.length + this.stop.length;
+			}
+			else if (p === pattern.indexOf(this.start, p)) {
+				starts.push(p);
+				p += this.start.length;
+			}
+			else if (p === pattern.indexOf(this.stop, p)) {
+				stops.push(p);
+				p += this.stop.length;
+			}
+			else {
+				p++;
+			}
+		}
+
+//		System.out.println("");
+//		System.out.println(starts);
+//		System.out.println(stops);
+		if (starts.length > stops.length) {
+			throw new Error("unterminated tag in pattern: " + pattern);
+		}
+
+		if (starts.length < stops.length) {
+			throw new Error("missing start tag in pattern: " + pattern);
+		}
+
+		let ntags: number = starts.length;
+		for (let i = 0; i < ntags; i++) {
+			if (starts[i] >= stops[i]) {
+				throw new Error("tag delimiters out of order in pattern: " + pattern);
+			}
+		}
+
+		// collect into chunks now
+		if (ntags === 0) {
+			let text: string = pattern.substring(0, n);
+			chunks.push(new TextChunk(text));
+		}
+
+		if (ntags > 0 && starts[0] > 0) { // copy text up to first tag into chunks
+			let text: string = pattern.substring(0, starts[0]);
+			chunks.push(new TextChunk(text));
+		}
+		for (let i = 0; i < ntags; i++) {
+			// copy inside of <tag>
+			let tag: string = pattern.substring(starts[i] + this.start.length, stops[i]);
+			let ruleOrToken: string = tag;
+			let label: string | undefined;
+			let colon: number = tag.indexOf(":");
+			if (colon >= 0) {
+				label = tag.substring(0, colon);
+				ruleOrToken = tag.substring(colon + 1, tag.length);
+			}
+			chunks.push(new TagChunk(ruleOrToken, label));
+			if (i + 1 < ntags) {
+				// copy from end of <tag> to start of next
+				let text: string = pattern.substring(stops[i] + this.stop.length, starts[i + 1]);
+				chunks.push(new TextChunk(text));
+			}
+		}
+		if (ntags > 0) {
+			let afterLastTag: number = stops[ntags - 1] + this.stop.length;
+			if (afterLastTag < n) { // copy text from end of last tag to end
+				let text: string = pattern.substring(afterLastTag, n);
+				chunks.push(new TextChunk(text));
+			}
+		}
+
+		// strip out the escape sequences from text chunks but not tags
+		for (let i = 0; i < chunks.length; i++) {
+			let c: Chunk = chunks[i];
+			if (c instanceof TextChunk) {
+				let unescaped: string = c.text.replace(this.escapeRE, "");
+				if (unescaped.length < c.text.length) {
+					chunks[i] = new TextChunk(unescaped);
+				}
+			}
+		}
+
+		return chunks;
+	}
+}
+
+export namespace ParseTreePatternMatcher {
+	export class CannotInvokeStartRule extends Error {
+		public constructor(public error: Error) {
+			super(`CannotInvokeStartRule: ${error}`);
+		}
+	}
+
+	// Fixes https://github.com/antlr/antlr4/issues/413
+	// "Tree pattern compilation doesn't check for a complete parse"
+	export class StartRuleDoesNotConsumeFullPattern extends Error {
+		constructor() {
+			super("StartRuleDoesNotConsumeFullPattern");
+		}
+	}
+}
+
+export class ProfilingATNSimulator extends ParserATNSimulator {
+	protected decisions: DecisionInfo[];
+	protected numDecisions: number;
+
+	protected _input: TokenStream | undefined;
+	protected _startIndex: number = 0;
+	protected _sllStopIndex: number = 0;
+	protected _llStopIndex: number = 0;
+
+	protected currentDecision: number = 0;
+	protected currentState: SimulatorState | undefined;
+
+	/** At the point of LL failover, we record how SLL would resolve the conflict so that
+	 *  we can determine whether or not a decision / input pair is context-sensitive.
+	 *  If LL gives a different result than SLL's predicted alternative, we have a
+	 *  context sensitivity for sure. The converse is not necessarily true, however.
+	 *  It's possible that after conflict resolution chooses minimum alternatives,
+	 *  SLL could get the same answer as LL. Regardless of whether or not the result indicates
+	 *  an ambiguity, it is not treated as a context sensitivity because LL prediction
+	 *  was not required in order to produce a correct prediction for this decision and input sequence.
+	 *  It may in fact still be a context sensitivity but we don't know by looking at the
+	 *  minimum alternatives for the current input.
+	 */
+	protected conflictingAltResolvedBySLL: number = 0;
+
+	constructor(parser: Parser) {
+		super(parser.interpreter.atn, parser);
+		this.optimize_ll1 = false;
+		this.reportAmbiguities = true;
+		this.numDecisions = this.atn.decisionToState.length;
+		this.decisions = [];
+		for (let i = 0; i < this.numDecisions; i++) {
+			this.decisions.push(new DecisionInfo(i));
+		}
+	}
+
+	@Override
+	public adaptivePredict(input: TokenStream, decision: number, outerContext: ParserRuleContext): number {
+		try {
+			this._input = input;
+			this._startIndex = input.index;
+			// it's possible for SLL to reach a conflict state without consuming any input
+			this._sllStopIndex = this._startIndex - 1;
+			this._llStopIndex = -1;
+			this.currentDecision = decision;
+			this.currentState = undefined;
+			this.conflictingAltResolvedBySLL = ATN.INVALID_ALT_NUMBER;
+			let start: number[] = process.hrtime();
+			let alt: number = super.adaptivePredict(input, decision, outerContext);
+			let stop: number[] = process.hrtime();
+
+			let nanoseconds: number = (stop[0] - start[0]) * 1000000000;
+			if (nanoseconds === 0) {
+				nanoseconds = stop[1] - start[1];
+			} else {
+				// Add nanoseconds from start to end of that second, plus start of the end second to end
+				nanoseconds += (1000000000 - start[1]) + stop[1];
+			}
+
+			this.decisions[decision].timeInPrediction += nanoseconds;
+			this.decisions[decision].invocations++;
+
+			let SLL_k: number = this._sllStopIndex - this._startIndex + 1;
+			this.decisions[decision].SLL_TotalLook += SLL_k;
+			this.decisions[decision].SLL_MinLook = this.decisions[decision].SLL_MinLook === 0 ? SLL_k : Math.min(this.decisions[decision].SLL_MinLook, SLL_k);
+			if (SLL_k > this.decisions[decision].SLL_MaxLook) {
+				this.decisions[decision].SLL_MaxLook = SLL_k;
+				this.decisions[decision].SLL_MaxLookEvent =
+					new LookaheadEventInfo(decision, undefined, alt, input, this._startIndex, this._sllStopIndex, false);
+			}
+
+			if (this._llStopIndex >= 0) {
+				let LL_k: number = this._llStopIndex - this._startIndex + 1;
+				this.decisions[decision].LL_TotalLook += LL_k;
+				this.decisions[decision].LL_MinLook = this.decisions[decision].LL_MinLook === 0 ? LL_k : Math.min(this.decisions[decision].LL_MinLook, LL_k);
+				if (LL_k > this.decisions[decision].LL_MaxLook) {
+					this.decisions[decision].LL_MaxLook = LL_k;
+					this.decisions[decision].LL_MaxLookEvent =
+						new LookaheadEventInfo(decision, undefined, alt, input, this._startIndex, this._llStopIndex, true);
+				}
+			}
+
+			return alt;
+		}
+		finally {
+			this._input = undefined;
+			this.currentDecision = -1;
+		}
+	}
+
+	@Override
+	protected getStartState(dfa: DFA, input: TokenStream, outerContext: ParserRuleContext, useContext: boolean): SimulatorState | undefined {
+		let state: SimulatorState | undefined = super.getStartState(dfa, input, outerContext, useContext);
+		this.currentState = state;
+		return state;
+	}
+
+	@Override
+	protected computeStartState(dfa: DFA, globalContext: ParserRuleContext, useContext: boolean): SimulatorState {
+		let state: SimulatorState = super.computeStartState(dfa, globalContext, useContext);
+		this.currentState = state;
+		return state;
+	}
+
+	@Override
+	protected computeReachSet(dfa: DFA, previous: SimulatorState, t: number, contextCache: PredictionContextCache): SimulatorState | undefined {
+		if (this._input === undefined) {
+			throw new Error("Invalid state");
+		}
+
+		let reachState: SimulatorState | undefined = super.computeReachSet(dfa, previous, t, contextCache);
+		if (reachState == null) {
+			// no reach on current lookahead symbol. ERROR.
+			this.decisions[this.currentDecision].errors.push(
+				new ErrorInfo(this.currentDecision, previous, this._input, this._startIndex, this._input.index),
+			);
+		}
+
+		this.currentState = reachState;
+		return reachState;
+	}
+
+	@Override
+	protected getExistingTargetState(previousD: DFAState, t: number): DFAState | undefined {
+		if (this.currentState === undefined || this._input === undefined) {
+			throw new Error("Invalid state");
+		}
+
+		// this method is called after each time the input position advances
+		if (this.currentState.useContext) {
+			this._llStopIndex = this._input.index;
+		}
+		else {
+			this._sllStopIndex = this._input.index;
+		}
+
+		let existingTargetState: DFAState | undefined = super.getExistingTargetState(previousD, t);
+		if (existingTargetState != null) {
+			// this method is directly called by execDFA; must construct a SimulatorState
+			// to represent the current state for this case
+			this.currentState = new SimulatorState(this.currentState.outerContext, existingTargetState, this.currentState.useContext, this.currentState.remainingOuterContext);
+
+			if (this.currentState.useContext) {
+				this.decisions[this.currentDecision].LL_DFATransitions++;
+			}
+			else {
+				this.decisions[this.currentDecision].SLL_DFATransitions++; // count only if we transition over a DFA state
+			}
+
+			if (existingTargetState === ATNSimulator.ERROR) {
+				let state: SimulatorState = new SimulatorState(this.currentState.outerContext, previousD, this.currentState.useContext, this.currentState.remainingOuterContext);
+				this.decisions[this.currentDecision].errors.push(
+					new ErrorInfo(this.currentDecision, state, this._input, this._startIndex, this._input.index),
+				);
+			}
+		}
+
+		return existingTargetState;
+	}
+
+	@Override
+	protected computeTargetState(dfa: DFA, s: DFAState, remainingGlobalContext: ParserRuleContext, t: number, useContext: boolean, contextCache: PredictionContextCache): [DFAState, ParserRuleContext | undefined] {
+		let targetState: [DFAState, ParserRuleContext | undefined] = super.computeTargetState(dfa, s, remainingGlobalContext, t, useContext, contextCache);
+
+		if (useContext) {
+			this.decisions[this.currentDecision].LL_ATNTransitions++;
+		}
+		else {
+			this.decisions[this.currentDecision].SLL_ATNTransitions++;
+		}
+
+		return targetState;
+	}
+
+	@Override
+	protected evalSemanticContextImpl(pred: SemanticContext, parserCallStack: ParserRuleContext, alt: number): boolean {
+		if (this.currentState === undefined || this._input === undefined) {
+			throw new Error("Invalid state");
+		}
+
+		let result: boolean = super.evalSemanticContextImpl(pred, parserCallStack, alt);
+		if (!(pred instanceof SemanticContext.PrecedencePredicate)) {
+			let fullContext: boolean = this._llStopIndex >= 0;
+			let stopIndex: number = fullContext ? this._llStopIndex : this._sllStopIndex;
+			this.decisions[this.currentDecision].predicateEvals.push(
+				new PredicateEvalInfo(this.currentState, this.currentDecision, this._input, this._startIndex, stopIndex, pred, result, alt),
+			);
+		}
+
+		return result;
+	}
+
+	@Override
+	protected reportContextSensitivity(dfa: DFA, prediction: number, acceptState: SimulatorState, startIndex: number, stopIndex: number): void {
+		if (this._input === undefined) {
+			throw new Error("Invalid state");
+		}
+
+		if (prediction !== this.conflictingAltResolvedBySLL) {
+			this.decisions[this.currentDecision].contextSensitivities.push(
+				new ContextSensitivityInfo(this.currentDecision, acceptState, this._input, startIndex, stopIndex),
+			);
+		}
+		super.reportContextSensitivity(dfa, prediction, acceptState, startIndex, stopIndex);
+	}
+
+	@Override
+	protected reportAttemptingFullContext(dfa: DFA, conflictingAlts: BitSet, conflictState: SimulatorState, startIndex: number, stopIndex: number): void {
+		if (conflictingAlts != null) {
+			this.conflictingAltResolvedBySLL = conflictingAlts.nextSetBit(0);
+		}
+		else {
+			this.conflictingAltResolvedBySLL = conflictState.s0.configs.getRepresentedAlternatives().nextSetBit(0);
+		}
+		this.decisions[this.currentDecision].LL_Fallback++;
+		super.reportAttemptingFullContext(dfa, conflictingAlts, conflictState, startIndex, stopIndex);
+	}
+
+	@Override
+	protected reportAmbiguity(@NotNull dfa: DFA, D: DFAState, startIndex: number, stopIndex: number, exact: boolean, @NotNull ambigAlts: BitSet, @NotNull configs: ATNConfigSet): void {
+		if (this.currentState === undefined || this._input === undefined) {
+			throw new Error("Invalid state");
+		}
+
+		let prediction: number;
+		if (ambigAlts != null) {
+			prediction = ambigAlts.nextSetBit(0);
+		}
+		else {
+			prediction = configs.getRepresentedAlternatives().nextSetBit(0);
+		}
+		if (this.conflictingAltResolvedBySLL !== ATN.INVALID_ALT_NUMBER && prediction !== this.conflictingAltResolvedBySLL) {
+			// Even though this is an ambiguity we are reporting, we can
+			// still detect some context sensitivities.  Both SLL and LL
+			// are showing a conflict, hence an ambiguity, but if they resolve
+			// to different minimum alternatives we have also identified a
+			// context sensitivity.
+			this.decisions[this.currentDecision].contextSensitivities.push(
+				new ContextSensitivityInfo(this.currentDecision, this.currentState, this._input, startIndex, stopIndex),
+			);
+		}
+		this.decisions[this.currentDecision].ambiguities.push(
+			new AmbiguityInfo(this.currentDecision, this.currentState, ambigAlts, this._input, startIndex, stopIndex),
+		);
+		super.reportAmbiguity(dfa, D, startIndex, stopIndex, exact, ambigAlts, configs);
+	}
+
+	// ---------------------------------------------------------------------
+
+	public getDecisionInfo(): DecisionInfo[] {
+		return this.decisions;
+	}
+
+	public getCurrentState(): SimulatorState | undefined {
+		return this.currentState;
 	}
 }
 
