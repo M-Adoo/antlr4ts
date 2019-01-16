@@ -4,6 +4,7 @@
  */
 import { ANTLRErrorStrategy } from "./ANTLRErrorStrategy";
 import { ATN } from "./atn/ATN";
+import { DFA } from "./dfa/DFA";
 import { IntegerStack } from "./misc/IntegerStack";
 import { IntervalSet } from "./misc/IntervalSet";
 import { Lexer } from "./Lexer";
@@ -19,6 +20,141 @@ import { RuleContext } from "./RuleContext";
 import { Token } from "./Token";
 import { TokenFactory } from "./TokenFactory";
 import { TokenStream } from "./TokenStream";
+import { DecisionInfo, SimulatorState, PredictionContextCache, SemanticContext, ATNConfigSet } from "./atn";
+import { BitSet, MultiMap } from "./misc";
+import { DFAState } from "./dfa";
+import { ParseTree } from "./tree";
+import { ParseTreeMatch, RuleTagToken } from "./tree/pattern";
+import { Chunk } from "./tree/pattern/Chunk";
+export declare class ParseTreePatternMatcher {
+    /**
+     * This is the backing field for `lexer`.
+     */
+    private _lexer;
+    /**
+     * This is the backing field for `parser`.
+     */
+    private _parser;
+    protected start: string;
+    protected stop: string;
+    protected escape: string;
+    /**
+     * Regular expression corresponding to escape, for global replace
+     */
+    protected escapeRE: RegExp;
+    /**
+     * Constructs a {@link ParseTreePatternMatcher} or from a {@link Lexer} and
+     * {@link Parser} object. The lexer input stream is altered for tokenizing
+     * the tree patterns. The parser is used as a convenient mechanism to get
+     * the grammar name, plus token, rule names.
+     */
+    constructor(lexer: Lexer, parser: Parser);
+    /**
+     * Set the delimiters used for marking rule and token tags within concrete
+     * syntax used by the tree pattern parser.
+     *
+     * @param start The start delimiter.
+     * @param stop The stop delimiter.
+     * @param escapeLeft The escape sequence to use for escaping a start or stop delimiter.
+     *
+     * @throws {@link Error} if `start` is not defined or empty.
+     * @throws {@link Error} if `stop` is not defined or empty.
+     */
+    setDelimiters(start: string, stop: string, escapeLeft: string): void;
+    /** Does `pattern` matched as rule `patternRuleIndex` match `tree`? */
+    matches(tree: ParseTree, pattern: string, patternRuleIndex: number): boolean;
+    /** Does `pattern` matched as rule patternRuleIndex match tree? Pass in a
+     *  compiled pattern instead of a string representation of a tree pattern.
+     */
+    matches(tree: ParseTree, pattern: ParseTreePattern): boolean;
+    /**
+     * Compare `pattern` matched as rule `patternRuleIndex` against
+     * `tree` and return a {@link ParseTreeMatch} object that contains the
+     * matched elements, or the node at which the match failed.
+     */
+    match(tree: ParseTree, pattern: string, patternRuleIndex: number): ParseTreeMatch;
+    /**
+     * Compare `pattern` matched against `tree` and return a
+     * {@link ParseTreeMatch} object that contains the matched elements, or the
+     * node at which the match failed. Pass in a compiled pattern instead of a
+     * string representation of a tree pattern.
+     */
+    match(tree: ParseTree, pattern: ParseTreePattern): ParseTreeMatch;
+    /**
+     * For repeated use of a tree pattern, compile it to a
+     * {@link ParseTreePattern} using this method.
+     */
+    compile(pattern: string, patternRuleIndex: number): ParseTreePattern;
+    /**
+     * Used to convert the tree pattern string into a series of tokens. The
+     * input stream is reset.
+     */
+    readonly lexer: Lexer;
+    /**
+     * Used to collect to the grammar file name, token names, rule names for
+     * used to parse the pattern into a parse tree.
+     */
+    readonly parser: Parser;
+    /**
+     * Recursively walk `tree` against `patternTree`, filling
+     * `match.`{@link ParseTreeMatch#labels labels}.
+     *
+     * @returns the first node encountered in `tree` which does not match
+     * a corresponding node in `patternTree`, or `undefined` if the match
+     * was successful. The specific node returned depends on the matching
+     * algorithm used by the implementation, and may be overridden.
+     */
+    protected matchImpl(tree: ParseTree, patternTree: ParseTree, labels: MultiMap<string, ParseTree>): ParseTree | undefined;
+    /** Is `t` `(expr <expr>)` subtree? */
+    protected getRuleTagToken(t: ParseTree): RuleTagToken | undefined;
+    tokenize(pattern: string): Token[];
+    /** Split `<ID> = <e:expr> ;` into 4 chunks for tokenizing by {@link #tokenize}. */
+    split(pattern: string): Chunk[];
+}
+export declare namespace ParseTreePatternMatcher {
+    class CannotInvokeStartRule extends Error {
+        error: Error;
+        constructor(error: Error);
+    }
+    class StartRuleDoesNotConsumeFullPattern extends Error {
+        constructor();
+    }
+}
+export declare class ProfilingATNSimulator extends ParserATNSimulator {
+    protected decisions: DecisionInfo[];
+    protected numDecisions: number;
+    protected _input: TokenStream | undefined;
+    protected _startIndex: number;
+    protected _sllStopIndex: number;
+    protected _llStopIndex: number;
+    protected currentDecision: number;
+    protected currentState: SimulatorState | undefined;
+    /** At the point of LL failover, we record how SLL would resolve the conflict so that
+     *  we can determine whether or not a decision / input pair is context-sensitive.
+     *  If LL gives a different result than SLL's predicted alternative, we have a
+     *  context sensitivity for sure. The converse is not necessarily true, however.
+     *  It's possible that after conflict resolution chooses minimum alternatives,
+     *  SLL could get the same answer as LL. Regardless of whether or not the result indicates
+     *  an ambiguity, it is not treated as a context sensitivity because LL prediction
+     *  was not required in order to produce a correct prediction for this decision and input sequence.
+     *  It may in fact still be a context sensitivity but we don't know by looking at the
+     *  minimum alternatives for the current input.
+     */
+    protected conflictingAltResolvedBySLL: number;
+    constructor(parser: Parser);
+    adaptivePredict(input: TokenStream, decision: number, outerContext: ParserRuleContext): number;
+    protected getStartState(dfa: DFA, input: TokenStream, outerContext: ParserRuleContext, useContext: boolean): SimulatorState | undefined;
+    protected computeStartState(dfa: DFA, globalContext: ParserRuleContext, useContext: boolean): SimulatorState;
+    protected computeReachSet(dfa: DFA, previous: SimulatorState, t: number, contextCache: PredictionContextCache): SimulatorState | undefined;
+    protected getExistingTargetState(previousD: DFAState, t: number): DFAState | undefined;
+    protected computeTargetState(dfa: DFA, s: DFAState, remainingGlobalContext: ParserRuleContext, t: number, useContext: boolean, contextCache: PredictionContextCache): [DFAState, ParserRuleContext | undefined];
+    protected evalSemanticContextImpl(pred: SemanticContext, parserCallStack: ParserRuleContext, alt: number): boolean;
+    protected reportContextSensitivity(dfa: DFA, prediction: number, acceptState: SimulatorState, startIndex: number, stopIndex: number): void;
+    protected reportAttemptingFullContext(dfa: DFA, conflictingAlts: BitSet, conflictState: SimulatorState, startIndex: number, stopIndex: number): void;
+    protected reportAmbiguity(dfa: DFA, D: DFAState, startIndex: number, stopIndex: number, exact: boolean, ambigAlts: BitSet, configs: ATNConfigSet): void;
+    getDecisionInfo(): DecisionInfo[];
+    getCurrentState(): SimulatorState | undefined;
+}
 /** This is all the parsing support code essentially; most of it is error recovery stuff. */
 export declare abstract class Parser extends Recognizer<Token, ParserATNSimulator> {
     /**

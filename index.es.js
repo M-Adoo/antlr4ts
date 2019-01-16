@@ -4916,19 +4916,9 @@ var ActionSemanticContextATNConfig = /** @class */ (function (_super) {
     return ActionSemanticContextATNConfig;
 }(SemanticContextATNConfig));
 
-// shim for using process in browser
-if (typeof global.setTimeout === 'function') ;
-if (typeof global.clearTimeout === 'function') ;
+var commonjsGlobal = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
-// from https://github.com/kumavis/browser-process-hrtime/blob/master/index.js
-var performance = global.performance || {};
-var performanceNow =
-  performance.now        ||
-  performance.mozNow     ||
-  performance.msNow      ||
-  performance.oNow       ||
-  performance.webkitNow  ||
-  function(){ return (new Date()).getTime() };
+var process_1 = commonjsGlobal.process;
 
 // Copyright Joyent, Inc. and other Node contributors.
 
@@ -11966,7 +11956,7 @@ var Trees = /** @class */ (function () {
     }
     Trees.toStringTree = function (t, arg2) {
         var ruleNames;
-        if (arg2 instanceof Parser) {
+        if (arg2 instanceof Parser$$1) {
             ruleNames = arg2.ruleNames;
         }
         else {
@@ -11992,7 +11982,7 @@ var Trees = /** @class */ (function () {
     };
     Trees.getNodeText = function (t, arg2) {
         var ruleNames;
-        if (arg2 instanceof Parser) {
+        if (arg2 instanceof Parser$$1) {
             ruleNames = arg2.ruleNames;
         }
         else if (arg2) {
@@ -17118,780 +17108,6 @@ var ParseInfo = /** @class */ (function () {
  * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
  */
 /**
- * @author Sam Harwell
- */
-var ProxyParserErrorListener = /** @class */ (function (_super) {
-    __extends(ProxyParserErrorListener, _super);
-    function ProxyParserErrorListener(delegates) {
-        return _super.call(this, delegates) || this;
-    }
-    ProxyParserErrorListener.prototype.reportAmbiguity = function (recognizer, dfa, startIndex, stopIndex, exact, ambigAlts, configs) {
-        this.getDelegates()
-            .forEach(function (listener) {
-            if (listener.reportAmbiguity) {
-                listener.reportAmbiguity(recognizer, dfa, startIndex, stopIndex, exact, ambigAlts, configs);
-            }
-        });
-    };
-    ProxyParserErrorListener.prototype.reportAttemptingFullContext = function (recognizer, dfa, startIndex, stopIndex, conflictingAlts, conflictState) {
-        this.getDelegates()
-            .forEach(function (listener) {
-            if (listener.reportAttemptingFullContext) {
-                listener.reportAttemptingFullContext(recognizer, dfa, startIndex, stopIndex, conflictingAlts, conflictState);
-            }
-        });
-    };
-    ProxyParserErrorListener.prototype.reportContextSensitivity = function (recognizer, dfa, startIndex, stopIndex, prediction, acceptState) {
-        this.getDelegates()
-            .forEach(function (listener) {
-            if (listener.reportContextSensitivity) {
-                listener.reportContextSensitivity(recognizer, dfa, startIndex, stopIndex, prediction, acceptState);
-            }
-        });
-    };
-    __decorate([
-        Override
-    ], ProxyParserErrorListener.prototype, "reportAmbiguity", null);
-    __decorate([
-        Override
-    ], ProxyParserErrorListener.prototype, "reportAttemptingFullContext", null);
-    __decorate([
-        Override
-    ], ProxyParserErrorListener.prototype, "reportContextSensitivity", null);
-    return ProxyParserErrorListener;
-}(ProxyErrorListener));
-
-/*!
- * Copyright 2016 The ANTLR Project. All rights reserved.
- * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
- */
-/**
- * This is the base class for gathering detailed information about prediction
- * events which occur during parsing.
- *
- * Note that we could record the parser call stack at the time this event
- * occurred but in the presence of left recursive rules, the stack is kind of
- * meaningless. It's better to look at the individual configurations for their
- * individual stacks. Of course that is a {@link PredictionContext} object
- * not a parse tree node and so it does not have information about the extent
- * (start...stop) of the various subtrees. Examining the stack tops of all
- * configurations provide the return states for the rule invocations.
- * From there you can get the enclosing rule.
- *
- * @since 4.3
- */
-var DecisionEventInfo = /** @class */ (function () {
-    function DecisionEventInfo(decision, state, input, startIndex, stopIndex, fullCtx) {
-        this.decision = decision;
-        this.fullCtx = fullCtx;
-        this.stopIndex = stopIndex;
-        this.input = input;
-        this.startIndex = startIndex;
-        this.state = state;
-    }
-    __decorate([
-        NotNull
-    ], DecisionEventInfo.prototype, "input", void 0);
-    DecisionEventInfo = __decorate([
-        __param(2, NotNull)
-    ], DecisionEventInfo);
-    return DecisionEventInfo;
-}());
-
-/*!
- * Copyright 2016 The ANTLR Project. All rights reserved.
- * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
- */
-/**
- * This class represents profiling event information for an ambiguity.
- * Ambiguities are decisions where a particular input resulted in an SLL
- * conflict, followed by LL prediction also reaching a conflict state
- * (indicating a true ambiguity in the grammar).
- *
- * This event may be reported during SLL prediction in cases where the
- * conflicting SLL configuration set provides sufficient information to
- * determine that the SLL conflict is truly an ambiguity. For example, if none
- * of the ATN configurations in the conflicting SLL configuration set have
- * traversed a global follow transition (i.e.
- * {@link ATNConfig#getReachesIntoOuterContext} is `false` for all
- * configurations), then the result of SLL prediction for that input is known to
- * be equivalent to the result of LL prediction for that input.
- *
- * In some cases, the minimum represented alternative in the conflicting LL
- * configuration set is not equal to the minimum represented alternative in the
- * conflicting SLL configuration set. Grammars and inputs which result in this
- * scenario are unable to use {@link PredictionMode#SLL}, which in turn means
- * they cannot use the two-stage parsing strategy to improve parsing performance
- * for that input.
- *
- * @see ParserATNSimulator#reportAmbiguity
- * @see ParserErrorListener#reportAmbiguity
- *
- * @since 4.3
- */
-var AmbiguityInfo = /** @class */ (function (_super) {
-    __extends(AmbiguityInfo, _super);
-    /**
-     * Constructs a new instance of the {@link AmbiguityInfo} class with the
-     * specified detailed ambiguity information.
-     *
-     * @param decision The decision number
-     * @param state The final simulator state identifying the ambiguous
-     * alternatives for the current input
-     * @param ambigAlts The set of alternatives in the decision that lead to a valid parse.
-     *                  The predicted alt is the min(ambigAlts)
-     * @param input The input token stream
-     * @param startIndex The start index for the current prediction
-     * @param stopIndex The index at which the ambiguity was identified during
-     * prediction
-     */
-    function AmbiguityInfo(decision, state, ambigAlts, input, startIndex, stopIndex) {
-        var _this = _super.call(this, decision, state, input, startIndex, stopIndex, state.useContext) || this;
-        _this.ambigAlts = ambigAlts;
-        return _this;
-    }
-    Object.defineProperty(AmbiguityInfo.prototype, "ambiguousAlternatives", {
-        /**
-         * Gets the set of alternatives in the decision that lead to a valid parse.
-         *
-         * @since 4.5
-         */
-        get: function () {
-            return this.ambigAlts;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    __decorate([
-        NotNull
-    ], AmbiguityInfo.prototype, "ambigAlts", void 0);
-    __decorate([
-        NotNull
-    ], AmbiguityInfo.prototype, "ambiguousAlternatives", null);
-    AmbiguityInfo = __decorate([
-        __param(1, NotNull),
-        __param(2, NotNull),
-        __param(3, NotNull)
-    ], AmbiguityInfo);
-    return AmbiguityInfo;
-}(DecisionEventInfo));
-
-/*!
- * Copyright 2016 The ANTLR Project. All rights reserved.
- * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
- */
-/**
- * This class represents profiling event information for a context sensitivity.
- * Context sensitivities are decisions where a particular input resulted in an
- * SLL conflict, but LL prediction produced a single unique alternative.
- *
- * In some cases, the unique alternative identified by LL prediction is not
- * equal to the minimum represented alternative in the conflicting SLL
- * configuration set. Grammars and inputs which result in this scenario are
- * unable to use {@link PredictionMode#SLL}, which in turn means they cannot use
- * the two-stage parsing strategy to improve parsing performance for that
- * input.
- *
- * @see ParserATNSimulator#reportContextSensitivity
- * @see ParserErrorListener#reportContextSensitivity
- *
- * @since 4.3
- */
-var ContextSensitivityInfo = /** @class */ (function (_super) {
-    __extends(ContextSensitivityInfo, _super);
-    /**
-     * Constructs a new instance of the {@link ContextSensitivityInfo} class
-     * with the specified detailed context sensitivity information.
-     *
-     * @param decision The decision number
-     * @param state The final simulator state containing the unique
-     * alternative identified by full-context prediction
-     * @param input The input token stream
-     * @param startIndex The start index for the current prediction
-     * @param stopIndex The index at which the context sensitivity was
-     * identified during full-context prediction
-     */
-    function ContextSensitivityInfo(decision, state, input, startIndex, stopIndex) {
-        return _super.call(this, decision, state, input, startIndex, stopIndex, true) || this;
-    }
-    ContextSensitivityInfo = __decorate([
-        __param(1, NotNull),
-        __param(2, NotNull)
-    ], ContextSensitivityInfo);
-    return ContextSensitivityInfo;
-}(DecisionEventInfo));
-
-/*!
- * Copyright 2016 The ANTLR Project. All rights reserved.
- * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
- */
-/**
- * This class contains profiling gathered for a particular decision.
- *
- * Parsing performance in ANTLR 4 is heavily influenced by both static factors
- * (e.g. the form of the rules in the grammar) and dynamic factors (e.g. the
- * choice of input and the state of the DFA cache at the time profiling
- * operations are started). For best results, gather and use aggregate
- * statistics from a large sample of inputs representing the inputs expected in
- * production before using the results to make changes in the grammar.
- *
- * @since 4.3
- */
-var DecisionInfo = /** @class */ (function () {
-    /**
-     * Constructs a new instance of the {@link DecisionInfo} class to contain
-     * statistics for a particular decision.
-     *
-     * @param decision The decision number
-     */
-    function DecisionInfo(decision) {
-        /**
-         * The total number of times {@link ParserATNSimulator#adaptivePredict} was
-         * invoked for this decision.
-         */
-        this.invocations = 0;
-        /**
-         * The total time spent in {@link ParserATNSimulator#adaptivePredict} for
-         * this decision, in nanoseconds.
-         *
-         * The value of this field contains the sum of differential results obtained
-         * by {@link System#nanoTime()}, and is not adjusted to compensate for JIT
-         * and/or garbage collection overhead. For best accuracy, use a modern JVM
-         * implementation that provides precise results from
-         * {@link System#nanoTime()}, and perform profiling in a separate process
-         * which is warmed up by parsing the input prior to profiling. If desired,
-         * call {@link ATNSimulator#clearDFA} to reset the DFA cache to its initial
-         * state before starting the profiling measurement pass.
-         */
-        this.timeInPrediction = 0;
-        /**
-         * The sum of the lookahead required for SLL prediction for this decision.
-         * Note that SLL prediction is used before LL prediction for performance
-         * reasons even when {@link PredictionMode#LL} or
-         * {@link PredictionMode#LL_EXACT_AMBIG_DETECTION} is used.
-         */
-        this.SLL_TotalLook = 0;
-        /**
-         * Gets the minimum lookahead required for any single SLL prediction to
-         * complete for this decision, by reaching a unique prediction, reaching an
-         * SLL conflict state, or encountering a syntax error.
-         */
-        this.SLL_MinLook = 0;
-        /**
-         * Gets the maximum lookahead required for any single SLL prediction to
-         * complete for this decision, by reaching a unique prediction, reaching an
-         * SLL conflict state, or encountering a syntax error.
-         */
-        this.SLL_MaxLook = 0;
-        /**
-         * The sum of the lookahead required for LL prediction for this decision.
-         * Note that LL prediction is only used when SLL prediction reaches a
-         * conflict state.
-         */
-        this.LL_TotalLook = 0;
-        /**
-         * Gets the minimum lookahead required for any single LL prediction to
-         * complete for this decision. An LL prediction completes when the algorithm
-         * reaches a unique prediction, a conflict state (for
-         * {@link PredictionMode#LL}, an ambiguity state (for
-         * {@link PredictionMode#LL_EXACT_AMBIG_DETECTION}, or a syntax error.
-         */
-        this.LL_MinLook = 0;
-        /**
-         * Gets the maximum lookahead required for any single LL prediction to
-         * complete for this decision. An LL prediction completes when the algorithm
-         * reaches a unique prediction, a conflict state (for
-         * {@link PredictionMode#LL}, an ambiguity state (for
-         * {@link PredictionMode#LL_EXACT_AMBIG_DETECTION}, or a syntax error.
-         */
-        this.LL_MaxLook = 0;
-        /**
-         * A collection of {@link ContextSensitivityInfo} instances describing the
-         * context sensitivities encountered during LL prediction for this decision.
-         *
-         * @see ContextSensitivityInfo
-         */
-        this.contextSensitivities = [];
-        /**
-         * A collection of {@link ErrorInfo} instances describing the parse errors
-         * identified during calls to {@link ParserATNSimulator#adaptivePredict} for
-         * this decision.
-         *
-         * @see ErrorInfo
-         */
-        this.errors = [];
-        /**
-         * A collection of {@link AmbiguityInfo} instances describing the
-         * ambiguities encountered during LL prediction for this decision.
-         *
-         * @see AmbiguityInfo
-         */
-        this.ambiguities = [];
-        /**
-         * A collection of {@link PredicateEvalInfo} instances describing the
-         * results of evaluating individual predicates during prediction for this
-         * decision.
-         *
-         * @see PredicateEvalInfo
-         */
-        this.predicateEvals = [];
-        /**
-         * The total number of ATN transitions required during SLL prediction for
-         * this decision. An ATN transition is determined by the number of times the
-         * DFA does not contain an edge that is required for prediction, resulting
-         * in on-the-fly computation of that edge.
-         *
-         * If DFA caching of SLL transitions is employed by the implementation, ATN
-         * computation may cache the computed edge for efficient lookup during
-         * future parsing of this decision. Otherwise, the SLL parsing algorithm
-         * will use ATN transitions exclusively.
-         *
-         * @see #SLL_ATNTransitions
-         * @see ParserATNSimulator#computeTargetState
-         * @see LexerATNSimulator#computeTargetState
-         */
-        this.SLL_ATNTransitions = 0;
-        /**
-         * The total number of DFA transitions required during SLL prediction for
-         * this decision.
-         *
-         * If the ATN simulator implementation does not use DFA caching for SLL
-         * transitions, this value will be 0.
-         *
-         * @see ParserATNSimulator#getExistingTargetState
-         * @see LexerATNSimulator#getExistingTargetState
-         */
-        this.SLL_DFATransitions = 0;
-        /**
-         * Gets the total number of times SLL prediction completed in a conflict
-         * state, resulting in fallback to LL prediction.
-         *
-         * Note that this value is not related to whether or not
-         * {@link PredictionMode#SLL} may be used successfully with a particular
-         * grammar. If the ambiguity resolution algorithm applied to the SLL
-         * conflicts for this decision produce the same result as LL prediction for
-         * this decision, {@link PredictionMode#SLL} would produce the same overall
-         * parsing result as {@link PredictionMode#LL}.
-         */
-        this.LL_Fallback = 0;
-        /**
-         * The total number of ATN transitions required during LL prediction for
-         * this decision. An ATN transition is determined by the number of times the
-         * DFA does not contain an edge that is required for prediction, resulting
-         * in on-the-fly computation of that edge.
-         *
-         * If DFA caching of LL transitions is employed by the implementation, ATN
-         * computation may cache the computed edge for efficient lookup during
-         * future parsing of this decision. Otherwise, the LL parsing algorithm will
-         * use ATN transitions exclusively.
-         *
-         * @see #LL_DFATransitions
-         * @see ParserATNSimulator#computeTargetState
-         * @see LexerATNSimulator#computeTargetState
-         */
-        this.LL_ATNTransitions = 0;
-        /**
-         * The total number of DFA transitions required during LL prediction for
-         * this decision.
-         *
-         * If the ATN simulator implementation does not use DFA caching for LL
-         * transitions, this value will be 0.
-         *
-         * @see ParserATNSimulator#getExistingTargetState
-         * @see LexerATNSimulator#getExistingTargetState
-         */
-        this.LL_DFATransitions = 0;
-        this.decision = decision;
-    }
-    DecisionInfo.prototype.toString = function () {
-        return "{" +
-            "decision=" + this.decision +
-            ", contextSensitivities=" + this.contextSensitivities.length +
-            ", errors=" + this.errors.length +
-            ", ambiguities=" + this.ambiguities.length +
-            ", SLL_lookahead=" + this.SLL_TotalLook +
-            ", SLL_ATNTransitions=" + this.SLL_ATNTransitions +
-            ", SLL_DFATransitions=" + this.SLL_DFATransitions +
-            ", LL_Fallback=" + this.LL_Fallback +
-            ", LL_lookahead=" + this.LL_TotalLook +
-            ", LL_ATNTransitions=" + this.LL_ATNTransitions +
-            "}";
-    };
-    __decorate([
-        Override
-    ], DecisionInfo.prototype, "toString", null);
-    return DecisionInfo;
-}());
-
-/*!
- * Copyright 2016 The ANTLR Project. All rights reserved.
- * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
- */
-/**
- * This class represents profiling event information for a syntax error
- * identified during prediction. Syntax errors occur when the prediction
- * algorithm is unable to identify an alternative which would lead to a
- * successful parse.
- *
- * @see Parser#notifyErrorListeners(Token, String, RecognitionException)
- * @see ANTLRErrorListener#syntaxError
- *
- * @since 4.3
- */
-var ErrorInfo = /** @class */ (function (_super) {
-    __extends(ErrorInfo, _super);
-    /**
-     * Constructs a new instance of the {@link ErrorInfo} class with the
-     * specified detailed syntax error information.
-     *
-     * @param decision The decision number
-     * @param state The final simulator state reached during prediction
-     * prior to reaching the {@link ATNSimulator#ERROR} state
-     * @param input The input token stream
-     * @param startIndex The start index for the current prediction
-     * @param stopIndex The index at which the syntax error was identified
-     */
-    function ErrorInfo(decision, state, input, startIndex, stopIndex) {
-        return _super.call(this, decision, state, input, startIndex, stopIndex, state.useContext) || this;
-    }
-    ErrorInfo = __decorate([
-        __param(1, NotNull),
-        __param(2, NotNull)
-    ], ErrorInfo);
-    return ErrorInfo;
-}(DecisionEventInfo));
-
-/*!
- * Copyright 2016 The ANTLR Project. All rights reserved.
- * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
- */
-/**
- * This class represents profiling event information for tracking the lookahead
- * depth required in order to make a prediction.
- *
- * @since 4.3
- */
-var LookaheadEventInfo = /** @class */ (function (_super) {
-    __extends(LookaheadEventInfo, _super);
-    /**
-     * Constructs a new instance of the {@link LookaheadEventInfo} class with
-     * the specified detailed lookahead information.
-     *
-     * @param decision The decision number
-     * @param state The final simulator state containing the necessary
-     * information to determine the result of a prediction, or `undefined` if
-     * the final state is not available
-     * @param input The input token stream
-     * @param startIndex The start index for the current prediction
-     * @param stopIndex The index at which the prediction was finally made
-     * @param fullCtx `true` if the current lookahead is part of an LL
-     * prediction; otherwise, `false` if the current lookahead is part of
-     * an SLL prediction
-     */
-    function LookaheadEventInfo(decision, state, predictedAlt, input, startIndex, stopIndex, fullCtx) {
-        var _this = _super.call(this, decision, state, input, startIndex, stopIndex, fullCtx) || this;
-        _this.predictedAlt = predictedAlt;
-        return _this;
-    }
-    LookaheadEventInfo = __decorate([
-        __param(3, NotNull)
-    ], LookaheadEventInfo);
-    return LookaheadEventInfo;
-}(DecisionEventInfo));
-
-/*!
- * Copyright 2016 The ANTLR Project. All rights reserved.
- * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
- */
-/**
- * This class represents profiling event information for semantic predicate
- * evaluations which occur during prediction.
- *
- * @see ParserATNSimulator#evalSemanticContext
- *
- * @since 4.3
- */
-var PredicateEvalInfo = /** @class */ (function (_super) {
-    __extends(PredicateEvalInfo, _super);
-    /**
-     * Constructs a new instance of the {@link PredicateEvalInfo} class with the
-     * specified detailed predicate evaluation information.
-     *
-     * @param state The simulator state
-     * @param decision The decision number
-     * @param input The input token stream
-     * @param startIndex The start index for the current prediction
-     * @param stopIndex The index at which the predicate evaluation was
-     * triggered. Note that the input stream may be reset to other positions for
-     * the actual evaluation of individual predicates.
-     * @param semctx The semantic context which was evaluated
-     * @param evalResult The results of evaluating the semantic context
-     * @param predictedAlt The alternative number for the decision which is
-     * guarded by the semantic context `semctx`. See {@link #predictedAlt}
-     * for more information.
-     *
-     * @see ParserATNSimulator#evalSemanticContext(SemanticContext, ParserRuleContext, int)
-     * @see SemanticContext#eval(Recognizer, RuleContext)
-     */
-    function PredicateEvalInfo(state, decision, input, startIndex, stopIndex, semctx, evalResult, predictedAlt) {
-        var _this = _super.call(this, decision, state, input, startIndex, stopIndex, state.useContext) || this;
-        _this.semctx = semctx;
-        _this.evalResult = evalResult;
-        _this.predictedAlt = predictedAlt;
-        return _this;
-    }
-    PredicateEvalInfo = __decorate([
-        __param(0, NotNull),
-        __param(2, NotNull),
-        __param(5, NotNull)
-    ], PredicateEvalInfo);
-    return PredicateEvalInfo;
-}(DecisionEventInfo));
-
-/*!
- * Copyright 2016 The ANTLR Project. All rights reserved.
- * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
- */
-/**
- * @since 4.3
- */
-var ProfilingATNSimulator = /** @class */ (function (_super) {
-    __extends(ProfilingATNSimulator, _super);
-    function ProfilingATNSimulator(parser) {
-        var _this = _super.call(this, parser.interpreter.atn, parser) || this;
-        _this._startIndex = 0;
-        _this._sllStopIndex = 0;
-        _this._llStopIndex = 0;
-        _this.currentDecision = 0;
-        /** At the point of LL failover, we record how SLL would resolve the conflict so that
-         *  we can determine whether or not a decision / input pair is context-sensitive.
-         *  If LL gives a different result than SLL's predicted alternative, we have a
-         *  context sensitivity for sure. The converse is not necessarily true, however.
-         *  It's possible that after conflict resolution chooses minimum alternatives,
-         *  SLL could get the same answer as LL. Regardless of whether or not the result indicates
-         *  an ambiguity, it is not treated as a context sensitivity because LL prediction
-         *  was not required in order to produce a correct prediction for this decision and input sequence.
-         *  It may in fact still be a context sensitivity but we don't know by looking at the
-         *  minimum alternatives for the current input.
-         */
-        _this.conflictingAltResolvedBySLL = 0;
-        _this.optimize_ll1 = false;
-        _this.reportAmbiguities = true;
-        _this.numDecisions = _this.atn.decisionToState.length;
-        _this.decisions = [];
-        for (var i = 0; i < _this.numDecisions; i++) {
-            _this.decisions.push(new DecisionInfo(i));
-        }
-        return _this;
-    }
-    ProfilingATNSimulator.prototype.adaptivePredict = function (input, decision, outerContext) {
-        try {
-            this._input = input;
-            this._startIndex = input.index;
-            // it's possible for SLL to reach a conflict state without consuming any input
-            this._sllStopIndex = this._startIndex - 1;
-            this._llStopIndex = -1;
-            this.currentDecision = decision;
-            this.currentState = undefined;
-            this.conflictingAltResolvedBySLL = ATN.INVALID_ALT_NUMBER;
-            var start = process.hrtime();
-            var alt = _super.prototype.adaptivePredict.call(this, input, decision, outerContext);
-            var stop_1 = process.hrtime();
-            var nanoseconds = (stop_1[0] - start[0]) * 1000000000;
-            if (nanoseconds === 0) {
-                nanoseconds = stop_1[1] - start[1];
-            }
-            else {
-                // Add nanoseconds from start to end of that second, plus start of the end second to end
-                nanoseconds += (1000000000 - start[1]) + stop_1[1];
-            }
-            this.decisions[decision].timeInPrediction += nanoseconds;
-            this.decisions[decision].invocations++;
-            var SLL_k = this._sllStopIndex - this._startIndex + 1;
-            this.decisions[decision].SLL_TotalLook += SLL_k;
-            this.decisions[decision].SLL_MinLook = this.decisions[decision].SLL_MinLook === 0 ? SLL_k : Math.min(this.decisions[decision].SLL_MinLook, SLL_k);
-            if (SLL_k > this.decisions[decision].SLL_MaxLook) {
-                this.decisions[decision].SLL_MaxLook = SLL_k;
-                this.decisions[decision].SLL_MaxLookEvent =
-                    new LookaheadEventInfo(decision, undefined, alt, input, this._startIndex, this._sllStopIndex, false);
-            }
-            if (this._llStopIndex >= 0) {
-                var LL_k = this._llStopIndex - this._startIndex + 1;
-                this.decisions[decision].LL_TotalLook += LL_k;
-                this.decisions[decision].LL_MinLook = this.decisions[decision].LL_MinLook === 0 ? LL_k : Math.min(this.decisions[decision].LL_MinLook, LL_k);
-                if (LL_k > this.decisions[decision].LL_MaxLook) {
-                    this.decisions[decision].LL_MaxLook = LL_k;
-                    this.decisions[decision].LL_MaxLookEvent =
-                        new LookaheadEventInfo(decision, undefined, alt, input, this._startIndex, this._llStopIndex, true);
-                }
-            }
-            return alt;
-        }
-        finally {
-            this._input = undefined;
-            this.currentDecision = -1;
-        }
-    };
-    ProfilingATNSimulator.prototype.getStartState = function (dfa, input, outerContext, useContext) {
-        var state = _super.prototype.getStartState.call(this, dfa, input, outerContext, useContext);
-        this.currentState = state;
-        return state;
-    };
-    ProfilingATNSimulator.prototype.computeStartState = function (dfa, globalContext, useContext) {
-        var state = _super.prototype.computeStartState.call(this, dfa, globalContext, useContext);
-        this.currentState = state;
-        return state;
-    };
-    ProfilingATNSimulator.prototype.computeReachSet = function (dfa, previous, t, contextCache) {
-        if (this._input === undefined) {
-            throw new Error("Invalid state");
-        }
-        var reachState = _super.prototype.computeReachSet.call(this, dfa, previous, t, contextCache);
-        if (reachState == null) {
-            // no reach on current lookahead symbol. ERROR.
-            this.decisions[this.currentDecision].errors.push(new ErrorInfo(this.currentDecision, previous, this._input, this._startIndex, this._input.index));
-        }
-        this.currentState = reachState;
-        return reachState;
-    };
-    ProfilingATNSimulator.prototype.getExistingTargetState = function (previousD, t) {
-        if (this.currentState === undefined || this._input === undefined) {
-            throw new Error("Invalid state");
-        }
-        // this method is called after each time the input position advances
-        if (this.currentState.useContext) {
-            this._llStopIndex = this._input.index;
-        }
-        else {
-            this._sllStopIndex = this._input.index;
-        }
-        var existingTargetState = _super.prototype.getExistingTargetState.call(this, previousD, t);
-        if (existingTargetState != null) {
-            // this method is directly called by execDFA; must construct a SimulatorState
-            // to represent the current state for this case
-            this.currentState = new SimulatorState(this.currentState.outerContext, existingTargetState, this.currentState.useContext, this.currentState.remainingOuterContext);
-            if (this.currentState.useContext) {
-                this.decisions[this.currentDecision].LL_DFATransitions++;
-            }
-            else {
-                this.decisions[this.currentDecision].SLL_DFATransitions++; // count only if we transition over a DFA state
-            }
-            if (existingTargetState === ATNSimulator.ERROR) {
-                var state = new SimulatorState(this.currentState.outerContext, previousD, this.currentState.useContext, this.currentState.remainingOuterContext);
-                this.decisions[this.currentDecision].errors.push(new ErrorInfo(this.currentDecision, state, this._input, this._startIndex, this._input.index));
-            }
-        }
-        return existingTargetState;
-    };
-    ProfilingATNSimulator.prototype.computeTargetState = function (dfa, s, remainingGlobalContext, t, useContext, contextCache) {
-        var targetState = _super.prototype.computeTargetState.call(this, dfa, s, remainingGlobalContext, t, useContext, contextCache);
-        if (useContext) {
-            this.decisions[this.currentDecision].LL_ATNTransitions++;
-        }
-        else {
-            this.decisions[this.currentDecision].SLL_ATNTransitions++;
-        }
-        return targetState;
-    };
-    ProfilingATNSimulator.prototype.evalSemanticContextImpl = function (pred, parserCallStack, alt) {
-        if (this.currentState === undefined || this._input === undefined) {
-            throw new Error("Invalid state");
-        }
-        var result = _super.prototype.evalSemanticContextImpl.call(this, pred, parserCallStack, alt);
-        if (!(pred instanceof SemanticContext.PrecedencePredicate)) {
-            var fullContext = this._llStopIndex >= 0;
-            var stopIndex = fullContext ? this._llStopIndex : this._sllStopIndex;
-            this.decisions[this.currentDecision].predicateEvals.push(new PredicateEvalInfo(this.currentState, this.currentDecision, this._input, this._startIndex, stopIndex, pred, result, alt));
-        }
-        return result;
-    };
-    ProfilingATNSimulator.prototype.reportContextSensitivity = function (dfa, prediction, acceptState, startIndex, stopIndex) {
-        if (this._input === undefined) {
-            throw new Error("Invalid state");
-        }
-        if (prediction !== this.conflictingAltResolvedBySLL) {
-            this.decisions[this.currentDecision].contextSensitivities.push(new ContextSensitivityInfo(this.currentDecision, acceptState, this._input, startIndex, stopIndex));
-        }
-        _super.prototype.reportContextSensitivity.call(this, dfa, prediction, acceptState, startIndex, stopIndex);
-    };
-    ProfilingATNSimulator.prototype.reportAttemptingFullContext = function (dfa, conflictingAlts, conflictState, startIndex, stopIndex) {
-        if (conflictingAlts != null) {
-            this.conflictingAltResolvedBySLL = conflictingAlts.nextSetBit(0);
-        }
-        else {
-            this.conflictingAltResolvedBySLL = conflictState.s0.configs.getRepresentedAlternatives().nextSetBit(0);
-        }
-        this.decisions[this.currentDecision].LL_Fallback++;
-        _super.prototype.reportAttemptingFullContext.call(this, dfa, conflictingAlts, conflictState, startIndex, stopIndex);
-    };
-    ProfilingATNSimulator.prototype.reportAmbiguity = function (dfa, D, startIndex, stopIndex, exact, ambigAlts, configs) {
-        if (this.currentState === undefined || this._input === undefined) {
-            throw new Error("Invalid state");
-        }
-        var prediction;
-        if (ambigAlts != null) {
-            prediction = ambigAlts.nextSetBit(0);
-        }
-        else {
-            prediction = configs.getRepresentedAlternatives().nextSetBit(0);
-        }
-        if (this.conflictingAltResolvedBySLL !== ATN.INVALID_ALT_NUMBER && prediction !== this.conflictingAltResolvedBySLL) {
-            // Even though this is an ambiguity we are reporting, we can
-            // still detect some context sensitivities.  Both SLL and LL
-            // are showing a conflict, hence an ambiguity, but if they resolve
-            // to different minimum alternatives we have also identified a
-            // context sensitivity.
-            this.decisions[this.currentDecision].contextSensitivities.push(new ContextSensitivityInfo(this.currentDecision, this.currentState, this._input, startIndex, stopIndex));
-        }
-        this.decisions[this.currentDecision].ambiguities.push(new AmbiguityInfo(this.currentDecision, this.currentState, ambigAlts, this._input, startIndex, stopIndex));
-        _super.prototype.reportAmbiguity.call(this, dfa, D, startIndex, stopIndex, exact, ambigAlts, configs);
-    };
-    // ---------------------------------------------------------------------
-    ProfilingATNSimulator.prototype.getDecisionInfo = function () {
-        return this.decisions;
-    };
-    ProfilingATNSimulator.prototype.getCurrentState = function () {
-        return this.currentState;
-    };
-    __decorate([
-        Override
-    ], ProfilingATNSimulator.prototype, "adaptivePredict", null);
-    __decorate([
-        Override
-    ], ProfilingATNSimulator.prototype, "getStartState", null);
-    __decorate([
-        Override
-    ], ProfilingATNSimulator.prototype, "computeStartState", null);
-    __decorate([
-        Override
-    ], ProfilingATNSimulator.prototype, "computeReachSet", null);
-    __decorate([
-        Override
-    ], ProfilingATNSimulator.prototype, "getExistingTargetState", null);
-    __decorate([
-        Override
-    ], ProfilingATNSimulator.prototype, "computeTargetState", null);
-    __decorate([
-        Override
-    ], ProfilingATNSimulator.prototype, "evalSemanticContextImpl", null);
-    __decorate([
-        Override
-    ], ProfilingATNSimulator.prototype, "reportContextSensitivity", null);
-    __decorate([
-        Override
-    ], ProfilingATNSimulator.prototype, "reportAttemptingFullContext", null);
-    __decorate([
-        Override,
-        __param(0, NotNull), __param(5, NotNull), __param(6, NotNull)
-    ], ProfilingATNSimulator.prototype, "reportAmbiguity", null);
-    return ProfilingATNSimulator;
-}(ParserATNSimulator));
-
-/*!
- * Copyright 2016 The ANTLR Project. All rights reserved.
- * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
- */
-/**
  * This implementation of {@link TokenStream} loads tokens from a
  * {@link TokenSource} on-demand, and places the tokens in a buffer to provide
  * access to any previous token by index.
@@ -18496,922 +17712,6 @@ var CommonTokenStream = /** @class */ (function (_super) {
     ], CommonTokenStream);
     return CommonTokenStream;
 }(BufferedTokenStream));
-
-/*!
-* Copyright 2016 The ANTLR Project. All rights reserved.
-* Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
-*/
-/**
- * Provides an implementation of {@link TokenSource} as a wrapper around a list
- * of {@link Token} objects.
- *
- * If the final token in the list is an {@link Token#EOF} token, it will be used
- * as the EOF token for every call to {@link #nextToken} after the end of the
- * list is reached. Otherwise, an EOF token will be created.
- */
-var ListTokenSource = /** @class */ (function () {
-    /**
-     * Constructs a new {@link ListTokenSource} instance from the specified
-     * collection of {@link Token} objects and source name.
-     *
-     * @param tokens The collection of {@link Token} objects to provide as a
-     * {@link TokenSource}.
-     * @param sourceName The name of the {@link TokenSource}. If this value is
-     * `undefined`, {@link #getSourceName} will attempt to infer the name from
-     * the next {@link Token} (or the previous token if the end of the input has
-     * been reached).
-     *
-     * @exception NullPointerException if `tokens` is `undefined`
-     */
-    function ListTokenSource(tokens, sourceName) {
-        /**
-         * The index into {@link #tokens} of token to return by the next call to
-         * {@link #nextToken}. The end of the input is indicated by this value
-         * being greater than or equal to the number of items in {@link #tokens}.
-         */
-        this.i = 0;
-        /**
-         * This is the backing field for {@link #getTokenFactory} and
-         * {@link setTokenFactory}.
-         */
-        this._factory = CommonTokenFactory.DEFAULT;
-        if (tokens == null) {
-            throw new Error("tokens cannot be null");
-        }
-        this.tokens = tokens;
-        this._sourceName = sourceName;
-    }
-    Object.defineProperty(ListTokenSource.prototype, "charPositionInLine", {
-        /**
-         * {@inheritDoc}
-         */
-        get: function () {
-            if (this.i < this.tokens.length) {
-                return this.tokens[this.i].charPositionInLine;
-            }
-            else if (this.eofToken != null) {
-                return this.eofToken.charPositionInLine;
-            }
-            else if (this.tokens.length > 0) {
-                // have to calculate the result from the line/column of the previous
-                // token, along with the text of the token.
-                var lastToken = this.tokens[this.tokens.length - 1];
-                var tokenText = lastToken.text;
-                if (tokenText != null) {
-                    var lastNewLine = tokenText.lastIndexOf("\n");
-                    if (lastNewLine >= 0) {
-                        return tokenText.length - lastNewLine - 1;
-                    }
-                }
-                return lastToken.charPositionInLine + lastToken.stopIndex - lastToken.startIndex + 1;
-            }
-            // only reach this if tokens is empty, meaning EOF occurs at the first
-            // position in the input
-            return 0;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    /**
-     * {@inheritDoc}
-     */
-    ListTokenSource.prototype.nextToken = function () {
-        if (this.i >= this.tokens.length) {
-            if (this.eofToken == null) {
-                var start = -1;
-                if (this.tokens.length > 0) {
-                    var previousStop = this.tokens[this.tokens.length - 1].stopIndex;
-                    if (previousStop !== -1) {
-                        start = previousStop + 1;
-                    }
-                }
-                var stop_1 = Math.max(-1, start - 1);
-                this.eofToken = this._factory.create({ source: this, stream: this.inputStream }, Token.EOF, "EOF", Token.DEFAULT_CHANNEL, start, stop_1, this.line, this.charPositionInLine);
-            }
-            return this.eofToken;
-        }
-        var t = this.tokens[this.i];
-        if (this.i === this.tokens.length - 1 && t.type === Token.EOF) {
-            this.eofToken = t;
-        }
-        this.i++;
-        return t;
-    };
-    Object.defineProperty(ListTokenSource.prototype, "line", {
-        /**
-         * {@inheritDoc}
-         */
-        get: function () {
-            if (this.i < this.tokens.length) {
-                return this.tokens[this.i].line;
-            }
-            else if (this.eofToken != null) {
-                return this.eofToken.line;
-            }
-            else if (this.tokens.length > 0) {
-                // have to calculate the result from the line/column of the previous
-                // token, along with the text of the token.
-                var lastToken = this.tokens[this.tokens.length - 1];
-                var line = lastToken.line;
-                var tokenText = lastToken.text;
-                if (tokenText != null) {
-                    for (var i = 0; i < tokenText.length; i++) {
-                        if (tokenText.charAt(i) === "\n") {
-                            line++;
-                        }
-                    }
-                }
-                // if no text is available, assume the token did not contain any newline characters.
-                return line;
-            }
-            // only reach this if tokens is empty, meaning EOF occurs at the first
-            // position in the input
-            return 1;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(ListTokenSource.prototype, "inputStream", {
-        /**
-         * {@inheritDoc}
-         */
-        get: function () {
-            if (this.i < this.tokens.length) {
-                return this.tokens[this.i].inputStream;
-            }
-            else if (this.eofToken != null) {
-                return this.eofToken.inputStream;
-            }
-            else if (this.tokens.length > 0) {
-                return this.tokens[this.tokens.length - 1].inputStream;
-            }
-            // no input stream information is available
-            return undefined;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(ListTokenSource.prototype, "sourceName", {
-        /**
-         * {@inheritDoc}
-         */
-        get: function () {
-            if (this._sourceName) {
-                return this._sourceName;
-            }
-            var inputStream = this.inputStream;
-            if (inputStream != null) {
-                return inputStream.sourceName;
-            }
-            return "List";
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(ListTokenSource.prototype, "tokenFactory", {
-        /**
-         * {@inheritDoc}
-         */
-        get: function () {
-            return this._factory;
-        },
-        /**
-         * {@inheritDoc}
-         */
-        // @Override
-        set: function (factory) {
-            this._factory = factory;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    __decorate([
-        Override
-    ], ListTokenSource.prototype, "charPositionInLine", null);
-    __decorate([
-        Override
-    ], ListTokenSource.prototype, "nextToken", null);
-    __decorate([
-        Override
-    ], ListTokenSource.prototype, "line", null);
-    __decorate([
-        Override
-    ], ListTokenSource.prototype, "inputStream", null);
-    __decorate([
-        Override
-    ], ListTokenSource.prototype, "sourceName", null);
-    __decorate([
-        Override,
-        NotNull,
-        __param(0, NotNull)
-    ], ListTokenSource.prototype, "tokenFactory", null);
-    ListTokenSource = __decorate([
-        __param(0, NotNull)
-    ], ListTokenSource);
-    return ListTokenSource;
-}());
-
-/*!
- * Copyright 2016 The ANTLR Project. All rights reserved.
- * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
- */
-// ConvertTo-TS run at 2016-10-04T11:26:42.1346951-07:00
-var MultiMap = /** @class */ (function (_super) {
-    __extends(MultiMap, _super);
-    function MultiMap() {
-        return _super.call(this) || this;
-    }
-    MultiMap.prototype.map = function (key, value) {
-        var elementsForKey = _super.prototype.get.call(this, key);
-        if (!elementsForKey) {
-            elementsForKey = [];
-            _super.prototype.set.call(this, key, elementsForKey);
-        }
-        elementsForKey.push(value);
-    };
-    MultiMap.prototype.getPairs = function () {
-        var pairs = [];
-        this.forEach(function (values, key) {
-            values.forEach(function (v) {
-                pairs.push([key, v]);
-            });
-        });
-        return pairs;
-    };
-    return MultiMap;
-}(Map));
-
-/*!
- * Copyright 2016 The ANTLR Project. All rights reserved.
- * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
- */
-// ConvertTo-TS run at 2016-10-04T11:26:42.5447085-07:00
-/**
- * This exception is thrown to cancel a parsing operation. This exception does
- * not extend {@link RecognitionException}, allowing it to bypass the standard
- * error recovery mechanisms. {@link BailErrorStrategy} throws this exception in
- * response to a parse error.
- *
- * @author Sam Harwell
- */
-var ParseCancellationException = /** @class */ (function (_super) {
-    __extends(ParseCancellationException, _super);
-    function ParseCancellationException(cause) {
-        var _this = _super.call(this, cause.message) || this;
-        _this.cause = cause;
-        _this.stack = cause.stack;
-        return _this;
-    }
-    ParseCancellationException.prototype.getCause = function () {
-        return this.cause;
-    };
-    return ParseCancellationException;
-}(Error));
-
-/*!
- * Copyright 2016 The ANTLR Project. All rights reserved.
- * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
- */
-/**
- * This class extends {@link ParserRuleContext} by allowing the value of
- * {@link #getRuleIndex} to be explicitly set for the context.
- *
- * {@link ParserRuleContext} does not include field storage for the rule index
- * since the context classes created by the code generator override the
- * {@link #getRuleIndex} method to return the correct value for that context.
- * Since the parser interpreter does not use the context classes generated for a
- * parser, this class (with slightly more memory overhead per node) is used to
- * provide equivalent functionality.
- */
-var InterpreterRuleContext = /** @class */ (function (_super) {
-    __extends(InterpreterRuleContext, _super);
-    function InterpreterRuleContext(ruleIndex, parent, invokingStateNumber) {
-        var _this = this;
-        if (invokingStateNumber !== undefined) {
-            _this = _super.call(this, parent, invokingStateNumber) || this;
-        }
-        else {
-            _this = _super.call(this) || this;
-        }
-        _this._ruleIndex = ruleIndex;
-        return _this;
-    }
-    Object.defineProperty(InterpreterRuleContext.prototype, "ruleIndex", {
-        get: function () {
-            return this._ruleIndex;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    __decorate([
-        Override
-    ], InterpreterRuleContext.prototype, "ruleIndex", null);
-    return InterpreterRuleContext;
-}(ParserRuleContext));
-
-/*!
- * Copyright 2016 The ANTLR Project. All rights reserved.
- * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
- */
-/** A parser simulator that mimics what ANTLR's generated
- *  parser code does. A ParserATNSimulator is used to make
- *  predictions via adaptivePredict but this class moves a pointer through the
- *  ATN to simulate parsing. ParserATNSimulator just
- *  makes us efficient rather than having to backtrack, for example.
- *
- *  This properly creates parse trees even for left recursive rules.
- *
- *  We rely on the left recursive rule invocation and special predicate
- *  transitions to make left recursive rules work.
- *
- *  See TestParserInterpreter for examples.
- */
-var ParserInterpreter = /** @class */ (function (_super) {
-    __extends(ParserInterpreter, _super);
-    function ParserInterpreter(grammarFileName, vocabulary, ruleNames, atn, input) {
-        var _this = _super.call(this, grammarFileName instanceof ParserInterpreter ? grammarFileName.inputStream : input) || this;
-        /** This stack corresponds to the _parentctx, _parentState pair of locals
-         *  that would exist on call stack frames with a recursive descent parser;
-         *  in the generated function for a left-recursive rule you'd see:
-         *
-         *  private EContext e(int _p) {
-         *      ParserRuleContext _parentctx = _ctx;    // Pair.a
-         *      int _parentState = state;          // Pair.b
-         *      ...
-         *  }
-         *
-         *  Those values are used to create new recursive rule invocation contexts
-         *  associated with left operand of an alt like "expr '*' expr".
-         */
-        _this._parentContextStack = [];
-        /** We need a map from (decision,inputIndex)->forced alt for computing ambiguous
-         *  parse trees. For now, we allow exactly one override.
-         */
-        _this.overrideDecision = -1;
-        _this.overrideDecisionInputIndex = -1;
-        _this.overrideDecisionAlt = -1;
-        _this.overrideDecisionReached = false; // latch and only override once; error might trigger infinite loop
-        /** What is the current context when we override a decisions?  This tells
-         *  us what the root of the parse tree is when using override
-         *  for an ambiguity/lookahead check.
-         */
-        _this._overrideDecisionRoot = undefined;
-        if (grammarFileName instanceof ParserInterpreter) {
-            var old = grammarFileName;
-            _this._grammarFileName = old._grammarFileName;
-            _this._atn = old._atn;
-            _this.pushRecursionContextStates = old.pushRecursionContextStates;
-            _this._ruleNames = old._ruleNames;
-            _this._vocabulary = old._vocabulary;
-            _this.interpreter = new ParserATNSimulator(_this._atn, _this);
-        }
-        else {
-            // The second constructor requires non-null arguments
-            vocabulary = vocabulary;
-            ruleNames = ruleNames;
-            atn = atn;
-            _this._grammarFileName = grammarFileName;
-            _this._atn = atn;
-            _this._ruleNames = ruleNames.slice(0);
-            _this._vocabulary = vocabulary;
-            // identify the ATN states where pushNewRecursionContext() must be called
-            _this.pushRecursionContextStates = new BitSet(atn.states.length);
-            try {
-                for (var _a = __values(atn.states), _b = _a.next(); !_b.done; _b = _a.next()) {
-                    var state = _b.value;
-                    if (!(state instanceof StarLoopEntryState)) {
-                        continue;
-                    }
-                    if (state.precedenceRuleDecision) {
-                        _this.pushRecursionContextStates.set(state.stateNumber);
-                    }
-                }
-            }
-            catch (e_1_1) { e_1 = { error: e_1_1 }; }
-            finally {
-                try {
-                    if (_b && !_b.done && (_c = _a.return)) _c.call(_a);
-                }
-                finally { if (e_1) throw e_1.error; }
-            }
-            // get atn simulator that knows how to do predictions
-            _this.interpreter = new ParserATNSimulator(atn, _this);
-        }
-        return _this;
-        var e_1, _c;
-    }
-    ParserInterpreter.prototype.reset = function (resetInput) {
-        if (resetInput === undefined) {
-            _super.prototype.reset.call(this);
-        }
-        else {
-            _super.prototype.reset.call(this, resetInput);
-        }
-        this.overrideDecisionReached = false;
-        this._overrideDecisionRoot = undefined;
-    };
-    Object.defineProperty(ParserInterpreter.prototype, "atn", {
-        get: function () {
-            return this._atn;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(ParserInterpreter.prototype, "vocabulary", {
-        get: function () {
-            return this._vocabulary;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(ParserInterpreter.prototype, "ruleNames", {
-        get: function () {
-            return this._ruleNames;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(ParserInterpreter.prototype, "grammarFileName", {
-        get: function () {
-            return this._grammarFileName;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    /** Begin parsing at startRuleIndex */
-    ParserInterpreter.prototype.parse = function (startRuleIndex) {
-        var startRuleStartState = this._atn.ruleToStartState[startRuleIndex];
-        this._rootContext = this.createInterpreterRuleContext(undefined, ATNState.INVALID_STATE_NUMBER, startRuleIndex);
-        if (startRuleStartState.isPrecedenceRule) {
-            this.enterRecursionRule(this._rootContext, startRuleStartState.stateNumber, startRuleIndex, 0);
-        }
-        else {
-            this.enterRule(this._rootContext, startRuleStartState.stateNumber, startRuleIndex);
-        }
-        while (true) {
-            var p = this.atnState;
-            switch (p.stateType) {
-                case ATNStateType.RULE_STOP:
-                    // pop; return from rule
-                    if (this._ctx.isEmpty) {
-                        if (startRuleStartState.isPrecedenceRule) {
-                            var result = this._ctx;
-                            var parentContext = this._parentContextStack.pop();
-                            this.unrollRecursionContexts(parentContext[0]);
-                            return result;
-                        }
-                        else {
-                            this.exitRule();
-                            return this._rootContext;
-                        }
-                    }
-                    this.visitRuleStopState(p);
-                    break;
-                default:
-                    try {
-                        this.visitState(p);
-                    }
-                    catch (e) {
-                        if (e instanceof RecognitionException) {
-                            this.state = this._atn.ruleToStopState[p.ruleIndex].stateNumber;
-                            this.context.exception = e;
-                            this.errorHandler.reportError(this, e);
-                            this.recover(e);
-                        }
-                        else {
-                            throw e;
-                        }
-                    }
-                    break;
-            }
-        }
-    };
-    ParserInterpreter.prototype.enterRecursionRule = function (localctx, state, ruleIndex, precedence) {
-        this._parentContextStack.push([this._ctx, localctx.invokingState]);
-        _super.prototype.enterRecursionRule.call(this, localctx, state, ruleIndex, precedence);
-    };
-    Object.defineProperty(ParserInterpreter.prototype, "atnState", {
-        get: function () {
-            return this._atn.states[this.state];
-        },
-        enumerable: true,
-        configurable: true
-    });
-    ParserInterpreter.prototype.visitState = function (p) {
-        var predictedAlt = 1;
-        if (p.numberOfTransitions > 1) {
-            predictedAlt = this.visitDecisionState(p);
-        }
-        var transition = p.transition(predictedAlt - 1);
-        switch (transition.serializationType) {
-            case 1 /* EPSILON */:
-                if (this.pushRecursionContextStates.get(p.stateNumber) &&
-                    !(transition.target instanceof LoopEndState)) {
-                    // We are at the start of a left recursive rule's (...)* loop
-                    // and we're not taking the exit branch of loop.
-                    var parentContext = this._parentContextStack[this._parentContextStack.length - 1];
-                    var localctx = this.createInterpreterRuleContext(parentContext[0], parentContext[1], this._ctx.ruleIndex);
-                    this.pushNewRecursionContext(localctx, this._atn.ruleToStartState[p.ruleIndex].stateNumber, this._ctx.ruleIndex);
-                }
-                break;
-            case 5 /* ATOM */:
-                this.match(transition._label);
-                break;
-            case 2 /* RANGE */:
-            case 7 /* SET */:
-            case 8 /* NOT_SET */:
-                if (!transition.matches(this._input.LA(1), Token.MIN_USER_TOKEN_TYPE, 65535)) {
-                    this.recoverInline();
-                }
-                this.matchWildcard();
-                break;
-            case 9 /* WILDCARD */:
-                this.matchWildcard();
-                break;
-            case 3 /* RULE */:
-                var ruleStartState = transition.target;
-                var ruleIndex = ruleStartState.ruleIndex;
-                var newctx = this.createInterpreterRuleContext(this._ctx, p.stateNumber, ruleIndex);
-                if (ruleStartState.isPrecedenceRule) {
-                    this.enterRecursionRule(newctx, ruleStartState.stateNumber, ruleIndex, transition.precedence);
-                }
-                else {
-                    this.enterRule(newctx, transition.target.stateNumber, ruleIndex);
-                }
-                break;
-            case 4 /* PREDICATE */:
-                var predicateTransition = transition;
-                if (!this.sempred(this._ctx, predicateTransition.ruleIndex, predicateTransition.predIndex)) {
-                    throw new FailedPredicateException(this);
-                }
-                break;
-            case 6 /* ACTION */:
-                var actionTransition = transition;
-                this.action(this._ctx, actionTransition.ruleIndex, actionTransition.actionIndex);
-                break;
-            case 10 /* PRECEDENCE */:
-                if (!this.precpred(this._ctx, transition.precedence)) {
-                    var precedence = transition.precedence;
-                    throw new FailedPredicateException(this, "precpred(_ctx, " + precedence + ")");
-                }
-                break;
-            default:
-                throw new Error("UnsupportedOperationException: Unrecognized ATN transition type.");
-        }
-        this.state = transition.target.stateNumber;
-    };
-    /** Method visitDecisionState() is called when the interpreter reaches
-     *  a decision state (instance of DecisionState). It gives an opportunity
-     *  for subclasses to track interesting things.
-     */
-    ParserInterpreter.prototype.visitDecisionState = function (p) {
-        var predictedAlt;
-        this.errorHandler.sync(this);
-        var decision = p.decision;
-        if (decision === this.overrideDecision && this._input.index === this.overrideDecisionInputIndex && !this.overrideDecisionReached) {
-            predictedAlt = this.overrideDecisionAlt;
-            this.overrideDecisionReached = true;
-        }
-        else {
-            predictedAlt = this.interpreter.adaptivePredict(this._input, decision, this._ctx);
-        }
-        return predictedAlt;
-    };
-    /** Provide simple "factory" for InterpreterRuleContext's.
-     *  @since 4.5.1
-     */
-    ParserInterpreter.prototype.createInterpreterRuleContext = function (parent, invokingStateNumber, ruleIndex) {
-        return new InterpreterRuleContext(ruleIndex, parent, invokingStateNumber);
-    };
-    ParserInterpreter.prototype.visitRuleStopState = function (p) {
-        var ruleStartState = this._atn.ruleToStartState[p.ruleIndex];
-        if (ruleStartState.isPrecedenceRule) {
-            var parentContext = this._parentContextStack.pop();
-            this.unrollRecursionContexts(parentContext[0]);
-            this.state = parentContext[1];
-        }
-        else {
-            this.exitRule();
-        }
-        var ruleTransition = this._atn.states[this.state].transition(0);
-        this.state = ruleTransition.followState.stateNumber;
-    };
-    /** Override this parser interpreters normal decision-making process
-     *  at a particular decision and input token index. Instead of
-     *  allowing the adaptive prediction mechanism to choose the
-     *  first alternative within a block that leads to a successful parse,
-     *  force it to take the alternative, 1..n for n alternatives.
-     *
-     *  As an implementation limitation right now, you can only specify one
-     *  override. This is sufficient to allow construction of different
-     *  parse trees for ambiguous input. It means re-parsing the entire input
-     *  in general because you're never sure where an ambiguous sequence would
-     *  live in the various parse trees. For example, in one interpretation,
-     *  an ambiguous input sequence would be matched completely in expression
-     *  but in another it could match all the way back to the root.
-     *
-     *  s : e '!'? ;
-     *  e : ID
-     *    | ID '!'
-     *    ;
-     *
-     *  Here, x! can be matched as (s (e ID) !) or (s (e ID !)). In the first
-     *  case, the ambiguous sequence is fully contained only by the root.
-     *  In the second case, the ambiguous sequences fully contained within just
-     *  e, as in: (e ID !).
-     *
-     *  Rather than trying to optimize this and make
-     *  some intelligent decisions for optimization purposes, I settled on
-     *  just re-parsing the whole input and then using
-     *  {link Trees#getRootOfSubtreeEnclosingRegion} to find the minimal
-     *  subtree that contains the ambiguous sequence. I originally tried to
-     *  record the call stack at the point the parser detected and ambiguity but
-     *  left recursive rules create a parse tree stack that does not reflect
-     *  the actual call stack. That impedance mismatch was enough to make
-     *  it it challenging to restart the parser at a deeply nested rule
-     *  invocation.
-     *
-     *  Only parser interpreters can override decisions so as to avoid inserting
-     *  override checking code in the critical ALL(*) prediction execution path.
-     *
-     *  @since 4.5
-     */
-    ParserInterpreter.prototype.addDecisionOverride = function (decision, tokenIndex, forcedAlt) {
-        this.overrideDecision = decision;
-        this.overrideDecisionInputIndex = tokenIndex;
-        this.overrideDecisionAlt = forcedAlt;
-    };
-    Object.defineProperty(ParserInterpreter.prototype, "overrideDecisionRoot", {
-        get: function () {
-            return this._overrideDecisionRoot;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    /** Rely on the error handler for this parser but, if no tokens are consumed
-     *  to recover, add an error node. Otherwise, nothing is seen in the parse
-     *  tree.
-     */
-    ParserInterpreter.prototype.recover = function (e) {
-        var i = this._input.index;
-        this.errorHandler.recover(this, e);
-        if (this._input.index === i) {
-            // no input consumed, better add an error node
-            var tok = e.getOffendingToken();
-            if (!tok) {
-                throw new Error("Expected exception to have an offending token");
-            }
-            var source = tok.tokenSource;
-            var stream = source !== undefined ? source.inputStream : undefined;
-            var sourcePair = { source: source, stream: stream };
-            if (e instanceof InputMismatchException) {
-                var expectedTokens = e.expectedTokens;
-                if (expectedTokens === undefined) {
-                    throw new Error("Expected the exception to provide expected tokens");
-                }
-                var expectedTokenType = expectedTokens.minElement; // get any element
-                var errToken = this.tokenFactory.create(sourcePair, expectedTokenType, tok.text, Token.DEFAULT_CHANNEL, -1, -1, // invalid start/stop
-                tok.line, tok.charPositionInLine);
-                this._ctx.addErrorNode(errToken);
-            }
-            else { // NoViableAlt
-                var source_1 = tok.tokenSource;
-                var errToken = this.tokenFactory.create(sourcePair, Token.INVALID_TYPE, tok.text, Token.DEFAULT_CHANNEL, -1, -1, // invalid start/stop
-                tok.line, tok.charPositionInLine);
-                this._ctx.addErrorNode(errToken);
-            }
-        }
-    };
-    ParserInterpreter.prototype.recoverInline = function () {
-        return this._errHandler.recoverInline(this);
-    };
-    Object.defineProperty(ParserInterpreter.prototype, "rootContext", {
-        /** Return the root of the parse, which can be useful if the parser
-         *  bails out. You still can access the top node. Note that,
-         *  because of the way left recursive rules add children, it's possible
-         *  that the root will not have any children if the start rule immediately
-         *  called and left recursive rule that fails.
-         *
-         * @since 4.5.1
-         */
-        get: function () {
-            return this._rootContext;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    __decorate([
-        NotNull
-    ], ParserInterpreter.prototype, "_vocabulary", void 0);
-    __decorate([
-        Override
-    ], ParserInterpreter.prototype, "reset", null);
-    __decorate([
-        Override
-    ], ParserInterpreter.prototype, "atn", null);
-    __decorate([
-        Override
-    ], ParserInterpreter.prototype, "vocabulary", null);
-    __decorate([
-        Override
-    ], ParserInterpreter.prototype, "ruleNames", null);
-    __decorate([
-        Override
-    ], ParserInterpreter.prototype, "grammarFileName", null);
-    __decorate([
-        Override
-    ], ParserInterpreter.prototype, "enterRecursionRule", null);
-    ParserInterpreter = __decorate([
-        __param(1, NotNull)
-    ], ParserInterpreter);
-    return ParserInterpreter;
-}(Parser));
-
-/*!
- * Copyright 2016 The ANTLR Project. All rights reserved.
- * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
- */
-/**
- * Represents the result of matching a {@link ParseTree} against a tree pattern.
- */
-var ParseTreeMatch = /** @class */ (function () {
-    /**
-     * Constructs a new instance of {@link ParseTreeMatch} from the specified
-     * parse tree and pattern.
-     *
-     * @param tree The parse tree to match against the pattern.
-     * @param pattern The parse tree pattern.
-     * @param labels A mapping from label names to collections of
-     * {@link ParseTree} objects located by the tree pattern matching process.
-     * @param mismatchedNode The first node which failed to match the tree
-     * pattern during the matching process.
-     *
-     * @throws {@link Error} if `tree` is not defined
-     * @throws {@link Error} if `pattern` is not defined
-     * @throws {@link Error} if `labels` is not defined
-     */
-    function ParseTreeMatch(tree, pattern, labels, mismatchedNode) {
-        if (!tree) {
-            throw new Error("tree cannot be null");
-        }
-        if (!pattern) {
-            throw new Error("pattern cannot be null");
-        }
-        if (!labels) {
-            throw new Error("labels cannot be null");
-        }
-        this._tree = tree;
-        this._pattern = pattern;
-        this._labels = labels;
-        this._mismatchedNode = mismatchedNode;
-    }
-    /**
-     * Get the last node associated with a specific `label`.
-     *
-     * For example, for pattern `<id:ID>`, `get("id")` returns the
-     * node matched for that `ID`. If more than one node
-     * matched the specified label, only the last is returned. If there is
-     * no node associated with the label, this returns `undefined`.
-     *
-     * Pattern tags like `<ID>` and `<expr>` without labels are
-     * considered to be labeled with `ID` and `expr`, respectively.
-     *
-     * @param label The label to check.
-     *
-     * @returns The last {@link ParseTree} to match a tag with the specified
-     * label, or `undefined` if no parse tree matched a tag with the label.
-     */
-    ParseTreeMatch.prototype.get = function (label) {
-        var parseTrees = this._labels.get(label);
-        if (!parseTrees || parseTrees.length === 0) {
-            return undefined;
-        }
-        return parseTrees[parseTrees.length - 1]; // return last if multiple
-    };
-    /**
-     * Return all nodes matching a rule or token tag with the specified label.
-     *
-     * If the `label` is the name of a parser rule or token in the
-     * grammar, the resulting list will contain both the parse trees matching
-     * rule or tags explicitly labeled with the label and the complete set of
-     * parse trees matching the labeled and unlabeled tags in the pattern for
-     * the parser rule or token. For example, if `label` is `"foo"`,
-     * the result will contain *all* of the following.
-     *
-     * * Parse tree nodes matching tags of the form `<foo:anyRuleName>` and
-     *   `<foo:AnyTokenName>`.
-     * * Parse tree nodes matching tags of the form `<anyLabel:foo>`.
-     * * Parse tree nodes matching tags of the form `<foo>`.
-     *
-     * @param label The label.
-     *
-     * @returns A collection of all {@link ParseTree} nodes matching tags with
-     * the specified `label`. If no nodes matched the label, an empty list
-     * is returned.
-     */
-    ParseTreeMatch.prototype.getAll = function (label) {
-        var nodes = this._labels.get(label);
-        if (!nodes) {
-            return [];
-        }
-        return nodes;
-    };
-    Object.defineProperty(ParseTreeMatch.prototype, "labels", {
-        /**
-         * Return a mapping from label &rarr; [list of nodes].
-         *
-         * The map includes special entries corresponding to the names of rules and
-         * tokens referenced in tags in the original pattern. For additional
-         * information, see the description of {@link #getAll(String)}.
-         *
-         * @returns A mapping from labels to parse tree nodes. If the parse tree
-         * pattern did not contain any rule or token tags, this map will be empty.
-         */
-        get: function () {
-            return this._labels;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(ParseTreeMatch.prototype, "mismatchedNode", {
-        /**
-         * Get the node at which we first detected a mismatch.
-         *
-         * @returns the node at which we first detected a mismatch, or `undefined`
-         * if the match was successful.
-         */
-        get: function () {
-            return this._mismatchedNode;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(ParseTreeMatch.prototype, "succeeded", {
-        /**
-         * Gets a value indicating whether the match operation succeeded.
-         *
-         * @returns `true` if the match operation succeeded; otherwise,
-         * `false`.
-         */
-        get: function () {
-            return !this._mismatchedNode;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(ParseTreeMatch.prototype, "pattern", {
-        /**
-         * Get the tree pattern we are matching against.
-         *
-         * @returns The tree pattern we are matching against.
-         */
-        get: function () {
-            return this._pattern;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(ParseTreeMatch.prototype, "tree", {
-        /**
-         * Get the parse tree we are trying to match to a pattern.
-         *
-         * @returns The {@link ParseTree} we are trying to match to a pattern.
-         */
-        get: function () {
-            return this._tree;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    /**
-     * {@inheritDoc}
-     */
-    ParseTreeMatch.prototype.toString = function () {
-        return "Match " + (this.succeeded ? "succeeded" : "failed") + "; found " + this.labels.size + " labels";
-    };
-    __decorate([
-        NotNull,
-        __param(0, NotNull)
-    ], ParseTreeMatch.prototype, "getAll", null);
-    __decorate([
-        NotNull
-    ], ParseTreeMatch.prototype, "labels", null);
-    __decorate([
-        NotNull
-    ], ParseTreeMatch.prototype, "pattern", null);
-    __decorate([
-        NotNull
-    ], ParseTreeMatch.prototype, "tree", null);
-    __decorate([
-        Override
-    ], ParseTreeMatch.prototype, "toString", null);
-    ParseTreeMatch = __decorate([
-        __param(0, NotNull),
-        __param(1, NotNull),
-        __param(2, NotNull)
-    ], ParseTreeMatch);
-    return ParseTreeMatch;
-}());
 
 // Generated from XPathLexer.g4 by ANTLR 4.6-SNAPSHOT
 var XPathLexer = /** @class */ (function (_super) {
@@ -20126,6 +18426,1127 @@ var ParseTreePattern = /** @class */ (function () {
  * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
  */
 /**
+ * @author Sam Harwell
+ */
+var ProxyParserErrorListener = /** @class */ (function (_super) {
+    __extends(ProxyParserErrorListener, _super);
+    function ProxyParserErrorListener(delegates) {
+        return _super.call(this, delegates) || this;
+    }
+    ProxyParserErrorListener.prototype.reportAmbiguity = function (recognizer, dfa, startIndex, stopIndex, exact, ambigAlts, configs) {
+        this.getDelegates()
+            .forEach(function (listener) {
+            if (listener.reportAmbiguity) {
+                listener.reportAmbiguity(recognizer, dfa, startIndex, stopIndex, exact, ambigAlts, configs);
+            }
+        });
+    };
+    ProxyParserErrorListener.prototype.reportAttemptingFullContext = function (recognizer, dfa, startIndex, stopIndex, conflictingAlts, conflictState) {
+        this.getDelegates()
+            .forEach(function (listener) {
+            if (listener.reportAttemptingFullContext) {
+                listener.reportAttemptingFullContext(recognizer, dfa, startIndex, stopIndex, conflictingAlts, conflictState);
+            }
+        });
+    };
+    ProxyParserErrorListener.prototype.reportContextSensitivity = function (recognizer, dfa, startIndex, stopIndex, prediction, acceptState) {
+        this.getDelegates()
+            .forEach(function (listener) {
+            if (listener.reportContextSensitivity) {
+                listener.reportContextSensitivity(recognizer, dfa, startIndex, stopIndex, prediction, acceptState);
+            }
+        });
+    };
+    __decorate([
+        Override
+    ], ProxyParserErrorListener.prototype, "reportAmbiguity", null);
+    __decorate([
+        Override
+    ], ProxyParserErrorListener.prototype, "reportAttemptingFullContext", null);
+    __decorate([
+        Override
+    ], ProxyParserErrorListener.prototype, "reportContextSensitivity", null);
+    return ProxyParserErrorListener;
+}(ProxyErrorListener));
+
+/*!
+ * Copyright 2016 The ANTLR Project. All rights reserved.
+ * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
+ */
+/**
+ * This is the base class for gathering detailed information about prediction
+ * events which occur during parsing.
+ *
+ * Note that we could record the parser call stack at the time this event
+ * occurred but in the presence of left recursive rules, the stack is kind of
+ * meaningless. It's better to look at the individual configurations for their
+ * individual stacks. Of course that is a {@link PredictionContext} object
+ * not a parse tree node and so it does not have information about the extent
+ * (start...stop) of the various subtrees. Examining the stack tops of all
+ * configurations provide the return states for the rule invocations.
+ * From there you can get the enclosing rule.
+ *
+ * @since 4.3
+ */
+var DecisionEventInfo = /** @class */ (function () {
+    function DecisionEventInfo(decision, state, input, startIndex, stopIndex, fullCtx) {
+        this.decision = decision;
+        this.fullCtx = fullCtx;
+        this.stopIndex = stopIndex;
+        this.input = input;
+        this.startIndex = startIndex;
+        this.state = state;
+    }
+    __decorate([
+        NotNull
+    ], DecisionEventInfo.prototype, "input", void 0);
+    DecisionEventInfo = __decorate([
+        __param(2, NotNull)
+    ], DecisionEventInfo);
+    return DecisionEventInfo;
+}());
+
+/*!
+ * Copyright 2016 The ANTLR Project. All rights reserved.
+ * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
+ */
+/**
+ * This class represents profiling event information for an ambiguity.
+ * Ambiguities are decisions where a particular input resulted in an SLL
+ * conflict, followed by LL prediction also reaching a conflict state
+ * (indicating a true ambiguity in the grammar).
+ *
+ * This event may be reported during SLL prediction in cases where the
+ * conflicting SLL configuration set provides sufficient information to
+ * determine that the SLL conflict is truly an ambiguity. For example, if none
+ * of the ATN configurations in the conflicting SLL configuration set have
+ * traversed a global follow transition (i.e.
+ * {@link ATNConfig#getReachesIntoOuterContext} is `false` for all
+ * configurations), then the result of SLL prediction for that input is known to
+ * be equivalent to the result of LL prediction for that input.
+ *
+ * In some cases, the minimum represented alternative in the conflicting LL
+ * configuration set is not equal to the minimum represented alternative in the
+ * conflicting SLL configuration set. Grammars and inputs which result in this
+ * scenario are unable to use {@link PredictionMode#SLL}, which in turn means
+ * they cannot use the two-stage parsing strategy to improve parsing performance
+ * for that input.
+ *
+ * @see ParserATNSimulator#reportAmbiguity
+ * @see ParserErrorListener#reportAmbiguity
+ *
+ * @since 4.3
+ */
+var AmbiguityInfo = /** @class */ (function (_super) {
+    __extends(AmbiguityInfo, _super);
+    /**
+     * Constructs a new instance of the {@link AmbiguityInfo} class with the
+     * specified detailed ambiguity information.
+     *
+     * @param decision The decision number
+     * @param state The final simulator state identifying the ambiguous
+     * alternatives for the current input
+     * @param ambigAlts The set of alternatives in the decision that lead to a valid parse.
+     *                  The predicted alt is the min(ambigAlts)
+     * @param input The input token stream
+     * @param startIndex The start index for the current prediction
+     * @param stopIndex The index at which the ambiguity was identified during
+     * prediction
+     */
+    function AmbiguityInfo(decision, state, ambigAlts, input, startIndex, stopIndex) {
+        var _this = _super.call(this, decision, state, input, startIndex, stopIndex, state.useContext) || this;
+        _this.ambigAlts = ambigAlts;
+        return _this;
+    }
+    Object.defineProperty(AmbiguityInfo.prototype, "ambiguousAlternatives", {
+        /**
+         * Gets the set of alternatives in the decision that lead to a valid parse.
+         *
+         * @since 4.5
+         */
+        get: function () {
+            return this.ambigAlts;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    __decorate([
+        NotNull
+    ], AmbiguityInfo.prototype, "ambigAlts", void 0);
+    __decorate([
+        NotNull
+    ], AmbiguityInfo.prototype, "ambiguousAlternatives", null);
+    AmbiguityInfo = __decorate([
+        __param(1, NotNull),
+        __param(2, NotNull),
+        __param(3, NotNull)
+    ], AmbiguityInfo);
+    return AmbiguityInfo;
+}(DecisionEventInfo));
+
+/*!
+ * Copyright 2016 The ANTLR Project. All rights reserved.
+ * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
+ */
+// ConvertTo-TS run at 2016-10-04T11:26:27.6094030-07:00
+/**
+ * Represents the type of recognizer an ATN applies to.
+ *
+ * @author Sam Harwell
+ */
+var ATNType;
+(function (ATNType) {
+    /**
+     * A lexer grammar.
+     */
+    ATNType[ATNType["LEXER"] = 0] = "LEXER";
+    /**
+     * A parser grammar.
+     */
+    ATNType[ATNType["PARSER"] = 1] = "PARSER";
+})(ATNType || (ATNType = {}));
+
+/*!
+ * Copyright 2016 The ANTLR Project. All rights reserved.
+ * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
+ */
+/**
+ * This class represents profiling event information for a context sensitivity.
+ * Context sensitivities are decisions where a particular input resulted in an
+ * SLL conflict, but LL prediction produced a single unique alternative.
+ *
+ * In some cases, the unique alternative identified by LL prediction is not
+ * equal to the minimum represented alternative in the conflicting SLL
+ * configuration set. Grammars and inputs which result in this scenario are
+ * unable to use {@link PredictionMode#SLL}, which in turn means they cannot use
+ * the two-stage parsing strategy to improve parsing performance for that
+ * input.
+ *
+ * @see ParserATNSimulator#reportContextSensitivity
+ * @see ParserErrorListener#reportContextSensitivity
+ *
+ * @since 4.3
+ */
+var ContextSensitivityInfo = /** @class */ (function (_super) {
+    __extends(ContextSensitivityInfo, _super);
+    /**
+     * Constructs a new instance of the {@link ContextSensitivityInfo} class
+     * with the specified detailed context sensitivity information.
+     *
+     * @param decision The decision number
+     * @param state The final simulator state containing the unique
+     * alternative identified by full-context prediction
+     * @param input The input token stream
+     * @param startIndex The start index for the current prediction
+     * @param stopIndex The index at which the context sensitivity was
+     * identified during full-context prediction
+     */
+    function ContextSensitivityInfo(decision, state, input, startIndex, stopIndex) {
+        return _super.call(this, decision, state, input, startIndex, stopIndex, true) || this;
+    }
+    ContextSensitivityInfo = __decorate([
+        __param(1, NotNull),
+        __param(2, NotNull)
+    ], ContextSensitivityInfo);
+    return ContextSensitivityInfo;
+}(DecisionEventInfo));
+
+/*!
+ * Copyright 2016 The ANTLR Project. All rights reserved.
+ * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
+ */
+/**
+ * This class contains profiling gathered for a particular decision.
+ *
+ * Parsing performance in ANTLR 4 is heavily influenced by both static factors
+ * (e.g. the form of the rules in the grammar) and dynamic factors (e.g. the
+ * choice of input and the state of the DFA cache at the time profiling
+ * operations are started). For best results, gather and use aggregate
+ * statistics from a large sample of inputs representing the inputs expected in
+ * production before using the results to make changes in the grammar.
+ *
+ * @since 4.3
+ */
+var DecisionInfo = /** @class */ (function () {
+    /**
+     * Constructs a new instance of the {@link DecisionInfo} class to contain
+     * statistics for a particular decision.
+     *
+     * @param decision The decision number
+     */
+    function DecisionInfo(decision) {
+        /**
+         * The total number of times {@link ParserATNSimulator#adaptivePredict} was
+         * invoked for this decision.
+         */
+        this.invocations = 0;
+        /**
+         * The total time spent in {@link ParserATNSimulator#adaptivePredict} for
+         * this decision, in nanoseconds.
+         *
+         * The value of this field contains the sum of differential results obtained
+         * by {@link System#nanoTime()}, and is not adjusted to compensate for JIT
+         * and/or garbage collection overhead. For best accuracy, use a modern JVM
+         * implementation that provides precise results from
+         * {@link System#nanoTime()}, and perform profiling in a separate process
+         * which is warmed up by parsing the input prior to profiling. If desired,
+         * call {@link ATNSimulator#clearDFA} to reset the DFA cache to its initial
+         * state before starting the profiling measurement pass.
+         */
+        this.timeInPrediction = 0;
+        /**
+         * The sum of the lookahead required for SLL prediction for this decision.
+         * Note that SLL prediction is used before LL prediction for performance
+         * reasons even when {@link PredictionMode#LL} or
+         * {@link PredictionMode#LL_EXACT_AMBIG_DETECTION} is used.
+         */
+        this.SLL_TotalLook = 0;
+        /**
+         * Gets the minimum lookahead required for any single SLL prediction to
+         * complete for this decision, by reaching a unique prediction, reaching an
+         * SLL conflict state, or encountering a syntax error.
+         */
+        this.SLL_MinLook = 0;
+        /**
+         * Gets the maximum lookahead required for any single SLL prediction to
+         * complete for this decision, by reaching a unique prediction, reaching an
+         * SLL conflict state, or encountering a syntax error.
+         */
+        this.SLL_MaxLook = 0;
+        /**
+         * The sum of the lookahead required for LL prediction for this decision.
+         * Note that LL prediction is only used when SLL prediction reaches a
+         * conflict state.
+         */
+        this.LL_TotalLook = 0;
+        /**
+         * Gets the minimum lookahead required for any single LL prediction to
+         * complete for this decision. An LL prediction completes when the algorithm
+         * reaches a unique prediction, a conflict state (for
+         * {@link PredictionMode#LL}, an ambiguity state (for
+         * {@link PredictionMode#LL_EXACT_AMBIG_DETECTION}, or a syntax error.
+         */
+        this.LL_MinLook = 0;
+        /**
+         * Gets the maximum lookahead required for any single LL prediction to
+         * complete for this decision. An LL prediction completes when the algorithm
+         * reaches a unique prediction, a conflict state (for
+         * {@link PredictionMode#LL}, an ambiguity state (for
+         * {@link PredictionMode#LL_EXACT_AMBIG_DETECTION}, or a syntax error.
+         */
+        this.LL_MaxLook = 0;
+        /**
+         * A collection of {@link ContextSensitivityInfo} instances describing the
+         * context sensitivities encountered during LL prediction for this decision.
+         *
+         * @see ContextSensitivityInfo
+         */
+        this.contextSensitivities = [];
+        /**
+         * A collection of {@link ErrorInfo} instances describing the parse errors
+         * identified during calls to {@link ParserATNSimulator#adaptivePredict} for
+         * this decision.
+         *
+         * @see ErrorInfo
+         */
+        this.errors = [];
+        /**
+         * A collection of {@link AmbiguityInfo} instances describing the
+         * ambiguities encountered during LL prediction for this decision.
+         *
+         * @see AmbiguityInfo
+         */
+        this.ambiguities = [];
+        /**
+         * A collection of {@link PredicateEvalInfo} instances describing the
+         * results of evaluating individual predicates during prediction for this
+         * decision.
+         *
+         * @see PredicateEvalInfo
+         */
+        this.predicateEvals = [];
+        /**
+         * The total number of ATN transitions required during SLL prediction for
+         * this decision. An ATN transition is determined by the number of times the
+         * DFA does not contain an edge that is required for prediction, resulting
+         * in on-the-fly computation of that edge.
+         *
+         * If DFA caching of SLL transitions is employed by the implementation, ATN
+         * computation may cache the computed edge for efficient lookup during
+         * future parsing of this decision. Otherwise, the SLL parsing algorithm
+         * will use ATN transitions exclusively.
+         *
+         * @see #SLL_ATNTransitions
+         * @see ParserATNSimulator#computeTargetState
+         * @see LexerATNSimulator#computeTargetState
+         */
+        this.SLL_ATNTransitions = 0;
+        /**
+         * The total number of DFA transitions required during SLL prediction for
+         * this decision.
+         *
+         * If the ATN simulator implementation does not use DFA caching for SLL
+         * transitions, this value will be 0.
+         *
+         * @see ParserATNSimulator#getExistingTargetState
+         * @see LexerATNSimulator#getExistingTargetState
+         */
+        this.SLL_DFATransitions = 0;
+        /**
+         * Gets the total number of times SLL prediction completed in a conflict
+         * state, resulting in fallback to LL prediction.
+         *
+         * Note that this value is not related to whether or not
+         * {@link PredictionMode#SLL} may be used successfully with a particular
+         * grammar. If the ambiguity resolution algorithm applied to the SLL
+         * conflicts for this decision produce the same result as LL prediction for
+         * this decision, {@link PredictionMode#SLL} would produce the same overall
+         * parsing result as {@link PredictionMode#LL}.
+         */
+        this.LL_Fallback = 0;
+        /**
+         * The total number of ATN transitions required during LL prediction for
+         * this decision. An ATN transition is determined by the number of times the
+         * DFA does not contain an edge that is required for prediction, resulting
+         * in on-the-fly computation of that edge.
+         *
+         * If DFA caching of LL transitions is employed by the implementation, ATN
+         * computation may cache the computed edge for efficient lookup during
+         * future parsing of this decision. Otherwise, the LL parsing algorithm will
+         * use ATN transitions exclusively.
+         *
+         * @see #LL_DFATransitions
+         * @see ParserATNSimulator#computeTargetState
+         * @see LexerATNSimulator#computeTargetState
+         */
+        this.LL_ATNTransitions = 0;
+        /**
+         * The total number of DFA transitions required during LL prediction for
+         * this decision.
+         *
+         * If the ATN simulator implementation does not use DFA caching for LL
+         * transitions, this value will be 0.
+         *
+         * @see ParserATNSimulator#getExistingTargetState
+         * @see LexerATNSimulator#getExistingTargetState
+         */
+        this.LL_DFATransitions = 0;
+        this.decision = decision;
+    }
+    DecisionInfo.prototype.toString = function () {
+        return "{" +
+            "decision=" + this.decision +
+            ", contextSensitivities=" + this.contextSensitivities.length +
+            ", errors=" + this.errors.length +
+            ", ambiguities=" + this.ambiguities.length +
+            ", SLL_lookahead=" + this.SLL_TotalLook +
+            ", SLL_ATNTransitions=" + this.SLL_ATNTransitions +
+            ", SLL_DFATransitions=" + this.SLL_DFATransitions +
+            ", LL_Fallback=" + this.LL_Fallback +
+            ", LL_lookahead=" + this.LL_TotalLook +
+            ", LL_ATNTransitions=" + this.LL_ATNTransitions +
+            "}";
+    };
+    __decorate([
+        Override
+    ], DecisionInfo.prototype, "toString", null);
+    return DecisionInfo;
+}());
+
+/*!
+ * Copyright 2016 The ANTLR Project. All rights reserved.
+ * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
+ */
+/**
+ * This class represents profiling event information for a syntax error
+ * identified during prediction. Syntax errors occur when the prediction
+ * algorithm is unable to identify an alternative which would lead to a
+ * successful parse.
+ *
+ * @see Parser#notifyErrorListeners(Token, String, RecognitionException)
+ * @see ANTLRErrorListener#syntaxError
+ *
+ * @since 4.3
+ */
+var ErrorInfo = /** @class */ (function (_super) {
+    __extends(ErrorInfo, _super);
+    /**
+     * Constructs a new instance of the {@link ErrorInfo} class with the
+     * specified detailed syntax error information.
+     *
+     * @param decision The decision number
+     * @param state The final simulator state reached during prediction
+     * prior to reaching the {@link ATNSimulator#ERROR} state
+     * @param input The input token stream
+     * @param startIndex The start index for the current prediction
+     * @param stopIndex The index at which the syntax error was identified
+     */
+    function ErrorInfo(decision, state, input, startIndex, stopIndex) {
+        return _super.call(this, decision, state, input, startIndex, stopIndex, state.useContext) || this;
+    }
+    ErrorInfo = __decorate([
+        __param(1, NotNull),
+        __param(2, NotNull)
+    ], ErrorInfo);
+    return ErrorInfo;
+}(DecisionEventInfo));
+
+/*!
+ * Copyright 2016 The ANTLR Project. All rights reserved.
+ * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
+ */
+// ConvertTo-TS run at 2016-10-04T11:26:29.0172086-07:00
+/**
+ * Represents the serialization type of a {@link LexerAction}.
+ *
+ * @author Sam Harwell
+ * @since 4.2
+ */
+var LexerActionType;
+(function (LexerActionType) {
+    /**
+     * The type of a {@link LexerChannelAction} action.
+     */
+    LexerActionType[LexerActionType["CHANNEL"] = 0] = "CHANNEL";
+    /**
+     * The type of a {@link LexerCustomAction} action.
+     */
+    LexerActionType[LexerActionType["CUSTOM"] = 1] = "CUSTOM";
+    /**
+     * The type of a {@link LexerModeAction} action.
+     */
+    LexerActionType[LexerActionType["MODE"] = 2] = "MODE";
+    /**
+     * The type of a {@link LexerMoreAction} action.
+     */
+    LexerActionType[LexerActionType["MORE"] = 3] = "MORE";
+    /**
+     * The type of a {@link LexerPopModeAction} action.
+     */
+    LexerActionType[LexerActionType["POP_MODE"] = 4] = "POP_MODE";
+    /**
+     * The type of a {@link LexerPushModeAction} action.
+     */
+    LexerActionType[LexerActionType["PUSH_MODE"] = 5] = "PUSH_MODE";
+    /**
+     * The type of a {@link LexerSkipAction} action.
+     */
+    LexerActionType[LexerActionType["SKIP"] = 6] = "SKIP";
+    /**
+     * The type of a {@link LexerTypeAction} action.
+     */
+    LexerActionType[LexerActionType["TYPE"] = 7] = "TYPE";
+})(LexerActionType || (LexerActionType = {}));
+
+/*!
+ * Copyright 2016 The ANTLR Project. All rights reserved.
+ * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
+ */
+/**
+ * This class represents profiling event information for tracking the lookahead
+ * depth required in order to make a prediction.
+ *
+ * @since 4.3
+ */
+var LookaheadEventInfo = /** @class */ (function (_super) {
+    __extends(LookaheadEventInfo, _super);
+    /**
+     * Constructs a new instance of the {@link LookaheadEventInfo} class with
+     * the specified detailed lookahead information.
+     *
+     * @param decision The decision number
+     * @param state The final simulator state containing the necessary
+     * information to determine the result of a prediction, or `undefined` if
+     * the final state is not available
+     * @param input The input token stream
+     * @param startIndex The start index for the current prediction
+     * @param stopIndex The index at which the prediction was finally made
+     * @param fullCtx `true` if the current lookahead is part of an LL
+     * prediction; otherwise, `false` if the current lookahead is part of
+     * an SLL prediction
+     */
+    function LookaheadEventInfo(decision, state, predictedAlt, input, startIndex, stopIndex, fullCtx) {
+        var _this = _super.call(this, decision, state, input, startIndex, stopIndex, fullCtx) || this;
+        _this.predictedAlt = predictedAlt;
+        return _this;
+    }
+    LookaheadEventInfo = __decorate([
+        __param(3, NotNull)
+    ], LookaheadEventInfo);
+    return LookaheadEventInfo;
+}(DecisionEventInfo));
+
+/*!
+ * Copyright 2016 The ANTLR Project. All rights reserved.
+ * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
+ */
+/**
+ * This class represents profiling event information for semantic predicate
+ * evaluations which occur during prediction.
+ *
+ * @see ParserATNSimulator#evalSemanticContext
+ *
+ * @since 4.3
+ */
+var PredicateEvalInfo = /** @class */ (function (_super) {
+    __extends(PredicateEvalInfo, _super);
+    /**
+     * Constructs a new instance of the {@link PredicateEvalInfo} class with the
+     * specified detailed predicate evaluation information.
+     *
+     * @param state The simulator state
+     * @param decision The decision number
+     * @param input The input token stream
+     * @param startIndex The start index for the current prediction
+     * @param stopIndex The index at which the predicate evaluation was
+     * triggered. Note that the input stream may be reset to other positions for
+     * the actual evaluation of individual predicates.
+     * @param semctx The semantic context which was evaluated
+     * @param evalResult The results of evaluating the semantic context
+     * @param predictedAlt The alternative number for the decision which is
+     * guarded by the semantic context `semctx`. See {@link #predictedAlt}
+     * for more information.
+     *
+     * @see ParserATNSimulator#evalSemanticContext(SemanticContext, ParserRuleContext, int)
+     * @see SemanticContext#eval(Recognizer, RuleContext)
+     */
+    function PredicateEvalInfo(state, decision, input, startIndex, stopIndex, semctx, evalResult, predictedAlt) {
+        var _this = _super.call(this, decision, state, input, startIndex, stopIndex, state.useContext) || this;
+        _this.semctx = semctx;
+        _this.evalResult = evalResult;
+        _this.predictedAlt = predictedAlt;
+        return _this;
+    }
+    PredicateEvalInfo = __decorate([
+        __param(0, NotNull),
+        __param(2, NotNull),
+        __param(5, NotNull)
+    ], PredicateEvalInfo);
+    return PredicateEvalInfo;
+}(DecisionEventInfo));
+
+/*!
+ * Copyright 2016 The ANTLR Project. All rights reserved.
+ * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
+ */
+
+/*!
+ * Copyright 2016 The ANTLR Project. All rights reserved.
+ * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
+ */
+// ConvertTo-TS run at 2016-10-04T11:26:37.8530496-07:00
+var TransitionType;
+(function (TransitionType) {
+    // constants for serialization
+    TransitionType[TransitionType["EPSILON"] = 1] = "EPSILON";
+    TransitionType[TransitionType["RANGE"] = 2] = "RANGE";
+    TransitionType[TransitionType["RULE"] = 3] = "RULE";
+    TransitionType[TransitionType["PREDICATE"] = 4] = "PREDICATE";
+    TransitionType[TransitionType["ATOM"] = 5] = "ATOM";
+    TransitionType[TransitionType["ACTION"] = 6] = "ACTION";
+    TransitionType[TransitionType["SET"] = 7] = "SET";
+    TransitionType[TransitionType["NOT_SET"] = 8] = "NOT_SET";
+    TransitionType[TransitionType["WILDCARD"] = 9] = "WILDCARD";
+    TransitionType[TransitionType["PRECEDENCE"] = 10] = "PRECEDENCE";
+})(TransitionType || (TransitionType = {}));
+
+/*!
+ * Copyright 2016 The ANTLR Project. All rights reserved.
+ * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
+ */
+
+/*!
+ * Copyright 2016 The ANTLR Project. All rights reserved.
+ * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
+ */
+
+/*!
+ * Copyright 2016 The ANTLR Project. All rights reserved.
+ * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
+ */
+// ConvertTo-TS run at 2016-10-04T11:26:42.1346951-07:00
+var MultiMap = /** @class */ (function (_super) {
+    __extends(MultiMap, _super);
+    function MultiMap() {
+        return _super.call(this) || this;
+    }
+    MultiMap.prototype.map = function (key, value) {
+        var elementsForKey = _super.prototype.get.call(this, key);
+        if (!elementsForKey) {
+            elementsForKey = [];
+            _super.prototype.set.call(this, key, elementsForKey);
+        }
+        elementsForKey.push(value);
+    };
+    MultiMap.prototype.getPairs = function () {
+        var pairs = [];
+        this.forEach(function (values, key) {
+            values.forEach(function (v) {
+                pairs.push([key, v]);
+            });
+        });
+        return pairs;
+    };
+    return MultiMap;
+}(Map));
+
+/*!
+ * Copyright 2016 The ANTLR Project. All rights reserved.
+ * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
+ */
+// ConvertTo-TS run at 2016-10-04T11:26:42.5447085-07:00
+/**
+ * This exception is thrown to cancel a parsing operation. This exception does
+ * not extend {@link RecognitionException}, allowing it to bypass the standard
+ * error recovery mechanisms. {@link BailErrorStrategy} throws this exception in
+ * response to a parse error.
+ *
+ * @author Sam Harwell
+ */
+var ParseCancellationException = /** @class */ (function (_super) {
+    __extends(ParseCancellationException, _super);
+    function ParseCancellationException(cause) {
+        var _this = _super.call(this, cause.message) || this;
+        _this.cause = cause;
+        _this.stack = cause.stack;
+        return _this;
+    }
+    ParseCancellationException.prototype.getCause = function () {
+        return this.cause;
+    };
+    return ParseCancellationException;
+}(Error));
+
+/*!
+ * Copyright 2016 The ANTLR Project. All rights reserved.
+ * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
+ */
+
+/*!
+ * Copyright 2016 The ANTLR Project. All rights reserved.
+ * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
+ */
+var AbstractParseTreeVisitor = /** @class */ (function () {
+    function AbstractParseTreeVisitor() {
+    }
+    /**
+     * {@inheritDoc}
+     *
+     * The default implementation calls {@link ParseTree#accept} on the
+     * specified tree.
+     */
+    AbstractParseTreeVisitor.prototype.visit = function (tree) {
+        return tree.accept(this);
+    };
+    /**
+     * {@inheritDoc}
+     *
+     * The default implementation initializes the aggregate result to
+     * {@link #defaultResult defaultResult()}. Before visiting each child, it
+     * calls {@link #shouldVisitNextChild shouldVisitNextChild}; if the result
+     * is `false` no more children are visited and the current aggregate
+     * result is returned. After visiting a child, the aggregate result is
+     * updated by calling {@link #aggregateResult aggregateResult} with the
+     * previous aggregate result and the result of visiting the child.
+     *
+     * The default implementation is not safe for use in visitors that modify
+     * the tree structure. Visitors that modify the tree should override this
+     * method to behave properly in respect to the specific algorithm in use.
+     */
+    AbstractParseTreeVisitor.prototype.visitChildren = function (node) {
+        var result = this.defaultResult();
+        var n = node.childCount;
+        for (var i = 0; i < n; i++) {
+            if (!this.shouldVisitNextChild(node, result)) {
+                break;
+            }
+            var c = node.getChild(i);
+            var childResult = c.accept(this);
+            result = this.aggregateResult(result, childResult);
+        }
+        return result;
+    };
+    /**
+     * {@inheritDoc}
+     *
+     * The default implementation returns the result of
+     * {@link #defaultResult defaultResult}.
+     */
+    AbstractParseTreeVisitor.prototype.visitTerminal = function (node) {
+        return this.defaultResult();
+    };
+    /**
+     * {@inheritDoc}
+     *
+     * The default implementation returns the result of
+     * {@link #defaultResult defaultResult}.
+     */
+    AbstractParseTreeVisitor.prototype.visitErrorNode = function (node) {
+        return this.defaultResult();
+    };
+    /**
+     * Aggregates the results of visiting multiple children of a node. After
+     * either all children are visited or {@link #shouldVisitNextChild} returns
+     * `false`, the aggregate value is returned as the result of
+     * {@link #visitChildren}.
+     *
+     * The default implementation returns `nextResult`, meaning
+     * {@link #visitChildren} will return the result of the last child visited
+     * (or return the initial value if the node has no children).
+     *
+     * @param aggregate The previous aggregate value. In the default
+     * implementation, the aggregate value is initialized to
+     * {@link #defaultResult}, which is passed as the `aggregate` argument
+     * to this method after the first child node is visited.
+     * @param nextResult The result of the immediately preceeding call to visit
+     * a child node.
+     *
+     * @returns The updated aggregate result.
+     */
+    AbstractParseTreeVisitor.prototype.aggregateResult = function (aggregate, nextResult) {
+        return nextResult;
+    };
+    /**
+     * This method is called after visiting each child in
+     * {@link #visitChildren}. This method is first called before the first
+     * child is visited; at that point `currentResult` will be the initial
+     * value (in the default implementation, the initial value is returned by a
+     * call to {@link #defaultResult}. This method is not called after the last
+     * child is visited.
+     *
+     * The default implementation always returns `true`, indicating that
+     * `visitChildren` should only return after all children are visited.
+     * One reason to override this method is to provide a "short circuit"
+     * evaluation option for situations where the result of visiting a single
+     * child has the potential to determine the result of the visit operation as
+     * a whole.
+     *
+     * @param node The {@link RuleNode} whose children are currently being
+     * visited.
+     * @param currentResult The current aggregate result of the children visited
+     * to the current point.
+     *
+     * @returns `true` to continue visiting children. Otherwise return
+     * `false` to stop visiting children and immediately return the
+     * current aggregate result from {@link #visitChildren}.
+     */
+    AbstractParseTreeVisitor.prototype.shouldVisitNextChild = function (node, currentResult) {
+        return true;
+    };
+    __decorate([
+        Override,
+        __param(0, NotNull)
+    ], AbstractParseTreeVisitor.prototype, "visit", null);
+    __decorate([
+        Override,
+        __param(0, NotNull)
+    ], AbstractParseTreeVisitor.prototype, "visitChildren", null);
+    __decorate([
+        Override,
+        __param(0, NotNull)
+    ], AbstractParseTreeVisitor.prototype, "visitTerminal", null);
+    __decorate([
+        Override,
+        __param(0, NotNull)
+    ], AbstractParseTreeVisitor.prototype, "visitErrorNode", null);
+    __decorate([
+        __param(0, NotNull)
+    ], AbstractParseTreeVisitor.prototype, "shouldVisitNextChild", null);
+    return AbstractParseTreeVisitor;
+}());
+
+/*!
+ * Copyright 2016 The ANTLR Project. All rights reserved.
+ * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
+ */
+
+/*!
+ * Copyright 2016 The ANTLR Project. All rights reserved.
+ * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
+ */
+var ParseTreeWalker = /** @class */ (function () {
+    function ParseTreeWalker() {
+    }
+    ParseTreeWalker.prototype.walk = function (listener, t) {
+        var nodeStack = [];
+        var indexStack = [];
+        var currentNode = t;
+        var currentIndex = 0;
+        while (currentNode) {
+            // pre-order visit
+            if (currentNode instanceof ErrorNode) {
+                if (listener.visitErrorNode) {
+                    listener.visitErrorNode(currentNode);
+                }
+            }
+            else if (currentNode instanceof TerminalNode) {
+                if (listener.visitTerminal) {
+                    listener.visitTerminal(currentNode);
+                }
+            }
+            else {
+                this.enterRule(listener, currentNode);
+            }
+            // Move down to first child, if exists
+            if (currentNode.childCount > 0) {
+                nodeStack.push(currentNode);
+                indexStack.push(currentIndex);
+                currentIndex = 0;
+                currentNode = currentNode.getChild(0);
+                continue;
+            }
+            // No child nodes, so walk tree
+            do {
+                // post-order visit
+                if (currentNode instanceof RuleNode) {
+                    this.exitRule(listener, currentNode);
+                }
+                // No parent, so no siblings
+                if (nodeStack.length === 0) {
+                    currentNode = undefined;
+                    currentIndex = 0;
+                    break;
+                }
+                // Move to next sibling if possible
+                var last = nodeStack[nodeStack.length - 1];
+                currentIndex++;
+                currentNode = currentIndex < last.childCount ? last.getChild(currentIndex) : undefined;
+                if (currentNode) {
+                    break;
+                }
+                // No next sibling, so move up
+                currentNode = nodeStack.pop();
+                currentIndex = indexStack.pop();
+            } while (currentNode);
+        }
+    };
+    /**
+     * The discovery of a rule node, involves sending two events: the generic
+     * {@link ParseTreeListener#enterEveryRule} and a
+     * {@link RuleContext}-specific event. First we trigger the generic and then
+     * the rule specific. We to them in reverse order upon finishing the node.
+     */
+    ParseTreeWalker.prototype.enterRule = function (listener, r) {
+        var ctx = r.ruleContext;
+        if (listener.enterEveryRule) {
+            listener.enterEveryRule(ctx);
+        }
+        ctx.enterRule(listener);
+    };
+    ParseTreeWalker.prototype.exitRule = function (listener, r) {
+        var ctx = r.ruleContext;
+        ctx.exitRule(listener);
+        if (listener.exitEveryRule) {
+            listener.exitEveryRule(ctx);
+        }
+    };
+    return ParseTreeWalker;
+}());
+(function (ParseTreeWalker) {
+    ParseTreeWalker.DEFAULT = new ParseTreeWalker();
+})(ParseTreeWalker || (ParseTreeWalker = {}));
+
+/*!
+ * Copyright 2016 The ANTLR Project. All rights reserved.
+ * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
+ */
+
+/*!
+ * Copyright 2016 The ANTLR Project. All rights reserved.
+ * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
+ */
+/**
+ * Represents the result of matching a {@link ParseTree} against a tree pattern.
+ */
+var ParseTreeMatch = /** @class */ (function () {
+    /**
+     * Constructs a new instance of {@link ParseTreeMatch} from the specified
+     * parse tree and pattern.
+     *
+     * @param tree The parse tree to match against the pattern.
+     * @param pattern The parse tree pattern.
+     * @param labels A mapping from label names to collections of
+     * {@link ParseTree} objects located by the tree pattern matching process.
+     * @param mismatchedNode The first node which failed to match the tree
+     * pattern during the matching process.
+     *
+     * @throws {@link Error} if `tree` is not defined
+     * @throws {@link Error} if `pattern` is not defined
+     * @throws {@link Error} if `labels` is not defined
+     */
+    function ParseTreeMatch(tree, pattern, labels, mismatchedNode) {
+        if (!tree) {
+            throw new Error("tree cannot be null");
+        }
+        if (!pattern) {
+            throw new Error("pattern cannot be null");
+        }
+        if (!labels) {
+            throw new Error("labels cannot be null");
+        }
+        this._tree = tree;
+        this._pattern = pattern;
+        this._labels = labels;
+        this._mismatchedNode = mismatchedNode;
+    }
+    /**
+     * Get the last node associated with a specific `label`.
+     *
+     * For example, for pattern `<id:ID>`, `get("id")` returns the
+     * node matched for that `ID`. If more than one node
+     * matched the specified label, only the last is returned. If there is
+     * no node associated with the label, this returns `undefined`.
+     *
+     * Pattern tags like `<ID>` and `<expr>` without labels are
+     * considered to be labeled with `ID` and `expr`, respectively.
+     *
+     * @param label The label to check.
+     *
+     * @returns The last {@link ParseTree} to match a tag with the specified
+     * label, or `undefined` if no parse tree matched a tag with the label.
+     */
+    ParseTreeMatch.prototype.get = function (label) {
+        var parseTrees = this._labels.get(label);
+        if (!parseTrees || parseTrees.length === 0) {
+            return undefined;
+        }
+        return parseTrees[parseTrees.length - 1]; // return last if multiple
+    };
+    /**
+     * Return all nodes matching a rule or token tag with the specified label.
+     *
+     * If the `label` is the name of a parser rule or token in the
+     * grammar, the resulting list will contain both the parse trees matching
+     * rule or tags explicitly labeled with the label and the complete set of
+     * parse trees matching the labeled and unlabeled tags in the pattern for
+     * the parser rule or token. For example, if `label` is `"foo"`,
+     * the result will contain *all* of the following.
+     *
+     * * Parse tree nodes matching tags of the form `<foo:anyRuleName>` and
+     *   `<foo:AnyTokenName>`.
+     * * Parse tree nodes matching tags of the form `<anyLabel:foo>`.
+     * * Parse tree nodes matching tags of the form `<foo>`.
+     *
+     * @param label The label.
+     *
+     * @returns A collection of all {@link ParseTree} nodes matching tags with
+     * the specified `label`. If no nodes matched the label, an empty list
+     * is returned.
+     */
+    ParseTreeMatch.prototype.getAll = function (label) {
+        var nodes = this._labels.get(label);
+        if (!nodes) {
+            return [];
+        }
+        return nodes;
+    };
+    Object.defineProperty(ParseTreeMatch.prototype, "labels", {
+        /**
+         * Return a mapping from label &rarr; [list of nodes].
+         *
+         * The map includes special entries corresponding to the names of rules and
+         * tokens referenced in tags in the original pattern. For additional
+         * information, see the description of {@link #getAll(String)}.
+         *
+         * @returns A mapping from labels to parse tree nodes. If the parse tree
+         * pattern did not contain any rule or token tags, this map will be empty.
+         */
+        get: function () {
+            return this._labels;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ParseTreeMatch.prototype, "mismatchedNode", {
+        /**
+         * Get the node at which we first detected a mismatch.
+         *
+         * @returns the node at which we first detected a mismatch, or `undefined`
+         * if the match was successful.
+         */
+        get: function () {
+            return this._mismatchedNode;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ParseTreeMatch.prototype, "succeeded", {
+        /**
+         * Gets a value indicating whether the match operation succeeded.
+         *
+         * @returns `true` if the match operation succeeded; otherwise,
+         * `false`.
+         */
+        get: function () {
+            return !this._mismatchedNode;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ParseTreeMatch.prototype, "pattern", {
+        /**
+         * Get the tree pattern we are matching against.
+         *
+         * @returns The tree pattern we are matching against.
+         */
+        get: function () {
+            return this._pattern;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ParseTreeMatch.prototype, "tree", {
+        /**
+         * Get the parse tree we are trying to match to a pattern.
+         *
+         * @returns The {@link ParseTree} we are trying to match to a pattern.
+         */
+        get: function () {
+            return this._tree;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    /**
+     * {@inheritDoc}
+     */
+    ParseTreeMatch.prototype.toString = function () {
+        return "Match " + (this.succeeded ? "succeeded" : "failed") + "; found " + this.labels.size + " labels";
+    };
+    __decorate([
+        NotNull,
+        __param(0, NotNull)
+    ], ParseTreeMatch.prototype, "getAll", null);
+    __decorate([
+        NotNull
+    ], ParseTreeMatch.prototype, "labels", null);
+    __decorate([
+        NotNull
+    ], ParseTreeMatch.prototype, "pattern", null);
+    __decorate([
+        NotNull
+    ], ParseTreeMatch.prototype, "tree", null);
+    __decorate([
+        Override
+    ], ParseTreeMatch.prototype, "toString", null);
+    ParseTreeMatch = __decorate([
+        __param(0, NotNull),
+        __param(1, NotNull),
+        __param(2, NotNull)
+    ], ParseTreeMatch);
+    return ParseTreeMatch;
+}());
+
+/*!
+ * Copyright 2016 The ANTLR Project. All rights reserved.
+ * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
+ */
+
+/*!
+ * Copyright 2016 The ANTLR Project. All rights reserved.
+ * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
+ */
+/**
  * A {@link Token} object representing an entire subtree matched by a parser
  * rule; e.g., `<expr>`. These tokens are created for {@link TagChunk}
  * chunks where the tag corresponds to a parser rule.
@@ -20356,6 +19777,110 @@ var RuleTagToken = /** @class */ (function () {
  * Copyright 2016 The ANTLR Project. All rights reserved.
  * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
  */
+/**
+ * A {@link Token} object representing a token of a particular type; e.g.,
+ * `<ID>`. These tokens are created for {@link TagChunk} chunks where the
+ * tag corresponds to a lexer rule or token type.
+ */
+var TokenTagToken = /** @class */ (function (_super) {
+    __extends(TokenTagToken, _super);
+    /**
+     * Constructs a new instance of {@link TokenTagToken} with the specified
+     * token name, type, and label.
+     *
+     * @param tokenName The token name.
+     * @param type The token type.
+     * @param label The label associated with the token tag, or `undefined` if
+     * the token tag is unlabeled.
+     */
+    function TokenTagToken(tokenName, type, label) {
+        var _this = _super.call(this, type) || this;
+        _this._tokenName = tokenName;
+        _this._label = label;
+        return _this;
+    }
+    Object.defineProperty(TokenTagToken.prototype, "tokenName", {
+        /**
+         * Gets the token name.
+         * @returns The token name.
+         */
+        get: function () {
+            return this._tokenName;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(TokenTagToken.prototype, "label", {
+        /**
+         * Gets the label associated with the rule tag.
+         *
+         * @returns The name of the label associated with the rule tag, or
+         * `undefined` if this is an unlabeled rule tag.
+         */
+        get: function () {
+            return this._label;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(TokenTagToken.prototype, "text", {
+        /**
+         * {@inheritDoc}
+         *
+         * The implementation for {@link TokenTagToken} returns the token tag
+         * formatted with `<` and `>` delimiters.
+         */
+        get: function () {
+            if (this._label != null) {
+                return "<" + this._label + ":" + this._tokenName + ">";
+            }
+            return "<" + this._tokenName + ">";
+        },
+        enumerable: true,
+        configurable: true
+    });
+    /**
+     * {@inheritDoc}
+     *
+     * The implementation for {@link TokenTagToken} returns a string of the form
+     * `tokenName:type`.
+     */
+    TokenTagToken.prototype.toString = function () {
+        return this._tokenName + ":" + this.type;
+    };
+    __decorate([
+        NotNull
+    ], TokenTagToken.prototype, "_tokenName", void 0);
+    __decorate([
+        NotNull
+    ], TokenTagToken.prototype, "tokenName", null);
+    __decorate([
+        Override
+    ], TokenTagToken.prototype, "text", null);
+    __decorate([
+        Override
+    ], TokenTagToken.prototype, "toString", null);
+    TokenTagToken = __decorate([
+        __param(0, NotNull)
+    ], TokenTagToken);
+    return TokenTagToken;
+}(CommonToken));
+
+/*!
+ * Copyright 2016 The ANTLR Project. All rights reserved.
+ * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
+ */
+// The following are "package-private modules" - exported individually but don't need to be part of the public API
+// exposed by this file.
+//
+// export * from "./Chunk";
+// export * from "./TagChunk";
+// export * from "./TextChunk";
+
+/*!
+ * Copyright 2016 The ANTLR Project. All rights reserved.
+ * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
+ */
 // ConvertTo-TS run at 2016-10-04T11:26:45.2799060-07:00
 /**
  * A chunk is either a token tag, a rule tag, or a span of literal text within a
@@ -20522,158 +20047,41 @@ var TextChunk = /** @class */ (function (_super) {
  * Copyright 2016 The ANTLR Project. All rights reserved.
  * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
  */
-/**
- * A {@link Token} object representing a token of a particular type; e.g.,
- * `<ID>`. These tokens are created for {@link TagChunk} chunks where the
- * tag corresponds to a lexer rule or token type.
- */
-var TokenTagToken = /** @class */ (function (_super) {
-    __extends(TokenTagToken, _super);
-    /**
-     * Constructs a new instance of {@link TokenTagToken} with the specified
-     * token name, type, and label.
-     *
-     * @param tokenName The token name.
-     * @param type The token type.
-     * @param label The label associated with the token tag, or `undefined` if
-     * the token tag is unlabeled.
-     */
-    function TokenTagToken(tokenName, type, label) {
-        var _this = _super.call(this, type) || this;
-        _this._tokenName = tokenName;
-        _this._label = label;
-        return _this;
+var TraceListener = /** @class */ (function () {
+    function TraceListener(ruleNames, tokenStream) {
+        this.ruleNames = ruleNames;
+        this.tokenStream = tokenStream;
     }
-    Object.defineProperty(TokenTagToken.prototype, "tokenName", {
-        /**
-         * Gets the token name.
-         * @returns The token name.
-         */
-        get: function () {
-            return this._tokenName;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(TokenTagToken.prototype, "label", {
-        /**
-         * Gets the label associated with the rule tag.
-         *
-         * @returns The name of the label associated with the rule tag, or
-         * `undefined` if this is an unlabeled rule tag.
-         */
-        get: function () {
-            return this._label;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(TokenTagToken.prototype, "text", {
-        /**
-         * {@inheritDoc}
-         *
-         * The implementation for {@link TokenTagToken} returns the token tag
-         * formatted with `<` and `>` delimiters.
-         */
-        get: function () {
-            if (this._label != null) {
-                return "<" + this._label + ":" + this._tokenName + ">";
-            }
-            return "<" + this._tokenName + ">";
-        },
-        enumerable: true,
-        configurable: true
-    });
-    /**
-     * {@inheritDoc}
-     *
-     * The implementation for {@link TokenTagToken} returns a string of the form
-     * `tokenName:type`.
-     */
-    TokenTagToken.prototype.toString = function () {
-        return this._tokenName + ":" + this.type;
+    TraceListener.prototype.enterEveryRule = function (ctx) {
+        console.log("enter   " + this.ruleNames[ctx.ruleIndex] +
+            ", LT(1)=" + this.tokenStream.LT(1).text);
+    };
+    TraceListener.prototype.exitEveryRule = function (ctx) {
+        console.log("exit    " + this.ruleNames[ctx.ruleIndex] +
+            ", LT(1)=" + this.tokenStream.LT(1).text);
+    };
+    TraceListener.prototype.visitErrorNode = function (node) {
+        // intentionally empty
+    };
+    TraceListener.prototype.visitTerminal = function (node) {
+        var parent = node.parent.ruleContext;
+        var token = node.symbol;
+        console.log("consume " + token + " rule " + this.ruleNames[parent.ruleIndex]);
     };
     __decorate([
-        NotNull
-    ], TokenTagToken.prototype, "_tokenName", void 0);
-    __decorate([
-        NotNull
-    ], TokenTagToken.prototype, "tokenName", null);
+        Override
+    ], TraceListener.prototype, "enterEveryRule", null);
     __decorate([
         Override
-    ], TokenTagToken.prototype, "text", null);
+    ], TraceListener.prototype, "exitEveryRule", null);
     __decorate([
         Override
-    ], TokenTagToken.prototype, "toString", null);
-    TokenTagToken = __decorate([
-        __param(0, NotNull)
-    ], TokenTagToken);
-    return TokenTagToken;
-}(CommonToken));
-
-/*!
- * Copyright 2016 The ANTLR Project. All rights reserved.
- * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
- */
-/**
- * A tree pattern matching mechanism for ANTLR {@link ParseTree}s.
- *
- * Patterns are strings of source input text with special tags representing
- * token or rule references such as:
- *
- * ```
- * <ID> = <expr>;
- * ```
- *
- * Given a pattern start rule such as `statement`, this object constructs
- * a {@link ParseTree} with placeholders for the `ID` and `expr`
- * subtree. Then the {@link #match} routines can compare an actual
- * {@link ParseTree} from a parse with this pattern. Tag `<ID>` matches
- * any `ID` token and tag `<expr>` references the result of the
- * `expr` rule (generally an instance of `ExprContext`.
- *
- * Pattern `x = 0;` is a similar pattern that matches the same pattern
- * except that it requires the identifier to be `x` and the expression to
- * be `0`.
- *
- * The {@link #matches} routines return `true` or `false` based
- * upon a match for the tree rooted at the parameter sent in. The
- * {@link #match} routines return a {@link ParseTreeMatch} object that
- * contains the parse tree, the parse tree pattern, and a map from tag name to
- * matched nodes (more below). A subtree that fails to match, returns with
- * {@link ParseTreeMatch#mismatchedNode} set to the first tree node that did not
- * match.
- *
- * For efficiency, you can compile a tree pattern in string form to a
- * {@link ParseTreePattern} object.
- *
- * See `TestParseTreeMatcher` for lots of examples.
- * {@link ParseTreePattern} has two static helper methods:
- * {@link ParseTreePattern#findAll} and {@link ParseTreePattern#match} that
- * are easy to use but not super efficient because they create new
- * {@link ParseTreePatternMatcher} objects each time and have to compile the
- * pattern in string form before using it.
- *
- * The lexer and parser that you pass into the {@link ParseTreePatternMatcher}
- * constructor are used to parse the pattern in string form. The lexer converts
- * the `<ID> = <expr>;` into a sequence of four tokens (assuming lexer
- * throws out whitespace or puts it on a hidden channel). Be aware that the
- * input stream is reset for the lexer (but not the parser; a
- * {@link ParserInterpreter} is created to parse the input.). Any user-defined
- * fields you have put into the lexer might get changed when this mechanism asks
- * it to scan the pattern string.
- *
- * Normally a parser does not accept token `<expr>` as a valid
- * `expr` but, from the parser passed in, we create a special version of
- * the underlying grammar representation (an {@link ATN}) that allows imaginary
- * tokens representing rules (`<expr>`) to match entire rules. We call
- * these *bypass alternatives*.
- *
- * Delimiters are `<`} and `>`}, with `\` as the escape string
- * by default, but you can set them to whatever you want using
- * {@link #setDelimiters}. You must escape both start and stop strings
- * `\<` and `\>`.
- */
+    ], TraceListener.prototype, "visitErrorNode", null);
+    __decorate([
+        Override
+    ], TraceListener.prototype, "visitTerminal", null);
+    return TraceListener;
+}());
 var ParseTreePatternMatcher = /** @class */ (function () {
     /**
      * Constructs a {@link ParseTreePatternMatcher} or from a {@link Lexer} and
@@ -20681,7 +20089,7 @@ var ParseTreePatternMatcher = /** @class */ (function () {
      * the tree patterns. The parser is used as a convenient mechanism to get
      * the grammar name, plus token, rule names.
      */
-    function ParseTreePatternMatcher(lexer, parser) {
+    function ParseTreePatternMatcher$$1(lexer, parser) {
         this.start = "<";
         this.stop = ">";
         this.escape = "\\"; // e.g., \< and \> must escape BOTH!
@@ -20703,7 +20111,7 @@ var ParseTreePatternMatcher = /** @class */ (function () {
      * @throws {@link Error} if `start` is not defined or empty.
      * @throws {@link Error} if `stop` is not defined or empty.
      */
-    ParseTreePatternMatcher.prototype.setDelimiters = function (start, stop, escapeLeft) {
+    ParseTreePatternMatcher$$1.prototype.setDelimiters = function (start, stop, escapeLeft) {
         if (!start) {
             throw new Error("start cannot be null or empty");
         }
@@ -20715,7 +20123,7 @@ var ParseTreePatternMatcher = /** @class */ (function () {
         this.escape = escapeLeft;
         this.escapeRE = new RegExp(escapeLeft.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g");
     };
-    ParseTreePatternMatcher.prototype.matches = function (tree, pattern, patternRuleIndex) {
+    ParseTreePatternMatcher$$1.prototype.matches = function (tree, pattern, patternRuleIndex) {
         if (patternRuleIndex === void 0) { patternRuleIndex = 0; }
         if (typeof pattern === "string") {
             var p = this.compile(pattern, patternRuleIndex);
@@ -20728,7 +20136,7 @@ var ParseTreePatternMatcher = /** @class */ (function () {
         }
     };
     // Implementation of match
-    ParseTreePatternMatcher.prototype.match = function (tree, pattern, patternRuleIndex) {
+    ParseTreePatternMatcher$$1.prototype.match = function (tree, pattern, patternRuleIndex) {
         if (patternRuleIndex === void 0) { patternRuleIndex = 0; }
         if (typeof pattern === "string") {
             var p = this.compile(pattern, patternRuleIndex);
@@ -20744,7 +20152,7 @@ var ParseTreePatternMatcher = /** @class */ (function () {
      * For repeated use of a tree pattern, compile it to a
      * {@link ParseTreePattern} using this method.
      */
-    ParseTreePatternMatcher.prototype.compile = function (pattern, patternRuleIndex) {
+    ParseTreePatternMatcher$$1.prototype.compile = function (pattern, patternRuleIndex) {
         var tokenList = this.tokenize(pattern);
         var tokenSrc = new ListTokenSource(tokenList);
         var tokens = new CommonTokenStream(tokenSrc);
@@ -20764,7 +20172,7 @@ var ParseTreePatternMatcher = /** @class */ (function () {
                 throw e;
             }
             else if (e instanceof Error) {
-                throw new ParseTreePatternMatcher.CannotInvokeStartRule(e);
+                throw new ParseTreePatternMatcher$$1.CannotInvokeStartRule(e);
             }
             else {
                 throw e;
@@ -20772,11 +20180,11 @@ var ParseTreePatternMatcher = /** @class */ (function () {
         }
         // Make sure tree pattern compilation checks for a complete parse
         if (tokens.LA(1) !== Token.EOF) {
-            throw new ParseTreePatternMatcher.StartRuleDoesNotConsumeFullPattern();
+            throw new ParseTreePatternMatcher$$1.StartRuleDoesNotConsumeFullPattern();
         }
         return new ParseTreePattern(this, pattern, patternRuleIndex, tree);
     };
-    Object.defineProperty(ParseTreePatternMatcher.prototype, "lexer", {
+    Object.defineProperty(ParseTreePatternMatcher$$1.prototype, "lexer", {
         /**
          * Used to convert the tree pattern string into a series of tokens. The
          * input stream is reset.
@@ -20787,7 +20195,7 @@ var ParseTreePatternMatcher = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(ParseTreePatternMatcher.prototype, "parser", {
+    Object.defineProperty(ParseTreePatternMatcher$$1.prototype, "parser", {
         /**
          * Used to collect to the grammar file name, token names, rule names for
          * used to parse the pattern into a parse tree.
@@ -20808,7 +20216,7 @@ var ParseTreePatternMatcher = /** @class */ (function () {
      * was successful. The specific node returned depends on the matching
      * algorithm used by the implementation, and may be overridden.
      */
-    ParseTreePatternMatcher.prototype.matchImpl = function (tree, patternTree, labels) {
+    ParseTreePatternMatcher$$1.prototype.matchImpl = function (tree, patternTree, labels) {
         if (!tree) {
             throw new TypeError("tree cannot be null");
         }
@@ -20885,7 +20293,7 @@ var ParseTreePatternMatcher = /** @class */ (function () {
         return tree;
     };
     /** Is `t` `(expr <expr>)` subtree? */
-    ParseTreePatternMatcher.prototype.getRuleTagToken = function (t) {
+    ParseTreePatternMatcher$$1.prototype.getRuleTagToken = function (t) {
         if (t instanceof RuleNode) {
             if (t.childCount === 1 && t.getChild(0) instanceof TerminalNode) {
                 var c = t.getChild(0);
@@ -20897,7 +20305,7 @@ var ParseTreePatternMatcher = /** @class */ (function () {
         }
         return undefined;
     };
-    ParseTreePatternMatcher.prototype.tokenize = function (pattern) {
+    ParseTreePatternMatcher$$1.prototype.tokenize = function (pattern) {
         // split pattern into chunks: sea (raw input) and islands (<ID>, <expr>)
         var chunks = this.split(pattern);
         // create token stream from text and tags
@@ -20953,7 +20361,7 @@ var ParseTreePatternMatcher = /** @class */ (function () {
         var e_1, _a;
     };
     /** Split `<ID> = <e:expr> ;` into 4 chunks for tokenizing by {@link #tokenize}. */
-    ParseTreePatternMatcher.prototype.split = function (pattern) {
+    ParseTreePatternMatcher$$1.prototype.split = function (pattern) {
         var p = 0;
         var n = pattern.length;
         var chunks = [];
@@ -21042,21 +20450,21 @@ var ParseTreePatternMatcher = /** @class */ (function () {
     __decorate([
         NotNull,
         __param(1, NotNull)
-    ], ParseTreePatternMatcher.prototype, "match", null);
+    ], ParseTreePatternMatcher$$1.prototype, "match", null);
     __decorate([
         NotNull
-    ], ParseTreePatternMatcher.prototype, "lexer", null);
+    ], ParseTreePatternMatcher$$1.prototype, "lexer", null);
     __decorate([
         NotNull
-    ], ParseTreePatternMatcher.prototype, "parser", null);
+    ], ParseTreePatternMatcher$$1.prototype, "parser", null);
     __decorate([
         __param(0, NotNull),
         __param(1, NotNull),
         __param(2, NotNull)
-    ], ParseTreePatternMatcher.prototype, "matchImpl", null);
-    return ParseTreePatternMatcher;
+    ], ParseTreePatternMatcher$$1.prototype, "matchImpl", null);
+    return ParseTreePatternMatcher$$1;
 }());
-(function (ParseTreePatternMatcher) {
+(function (ParseTreePatternMatcher$$1) {
     var CannotInvokeStartRule = /** @class */ (function (_super) {
         __extends(CannotInvokeStartRule, _super);
         function CannotInvokeStartRule(error) {
@@ -21066,7 +20474,7 @@ var ParseTreePatternMatcher = /** @class */ (function () {
         }
         return CannotInvokeStartRule;
     }(Error));
-    ParseTreePatternMatcher.CannotInvokeStartRule = CannotInvokeStartRule;
+    ParseTreePatternMatcher$$1.CannotInvokeStartRule = CannotInvokeStartRule;
     // Fixes https://github.com/antlr/antlr4/issues/413
     // "Tree pattern compilation doesn't check for a complete parse"
     var StartRuleDoesNotConsumeFullPattern = /** @class */ (function (_super) {
@@ -21076,52 +20484,243 @@ var ParseTreePatternMatcher = /** @class */ (function () {
         }
         return StartRuleDoesNotConsumeFullPattern;
     }(Error));
-    ParseTreePatternMatcher.StartRuleDoesNotConsumeFullPattern = StartRuleDoesNotConsumeFullPattern;
+    ParseTreePatternMatcher$$1.StartRuleDoesNotConsumeFullPattern = StartRuleDoesNotConsumeFullPattern;
 })(ParseTreePatternMatcher || (ParseTreePatternMatcher = {}));
-
-/*!
- * Copyright 2016 The ANTLR Project. All rights reserved.
- * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
- */
-var TraceListener = /** @class */ (function () {
-    function TraceListener(ruleNames, tokenStream) {
-        this.ruleNames = ruleNames;
-        this.tokenStream = tokenStream;
+var ProfilingATNSimulator$$1 = /** @class */ (function (_super) {
+    __extends(ProfilingATNSimulator$$1, _super);
+    function ProfilingATNSimulator$$1(parser) {
+        var _this = _super.call(this, parser.interpreter.atn, parser) || this;
+        _this._startIndex = 0;
+        _this._sllStopIndex = 0;
+        _this._llStopIndex = 0;
+        _this.currentDecision = 0;
+        /** At the point of LL failover, we record how SLL would resolve the conflict so that
+         *  we can determine whether or not a decision / input pair is context-sensitive.
+         *  If LL gives a different result than SLL's predicted alternative, we have a
+         *  context sensitivity for sure. The converse is not necessarily true, however.
+         *  It's possible that after conflict resolution chooses minimum alternatives,
+         *  SLL could get the same answer as LL. Regardless of whether or not the result indicates
+         *  an ambiguity, it is not treated as a context sensitivity because LL prediction
+         *  was not required in order to produce a correct prediction for this decision and input sequence.
+         *  It may in fact still be a context sensitivity but we don't know by looking at the
+         *  minimum alternatives for the current input.
+         */
+        _this.conflictingAltResolvedBySLL = 0;
+        _this.optimize_ll1 = false;
+        _this.reportAmbiguities = true;
+        _this.numDecisions = _this.atn.decisionToState.length;
+        _this.decisions = [];
+        for (var i = 0; i < _this.numDecisions; i++) {
+            _this.decisions.push(new DecisionInfo(i));
+        }
+        return _this;
     }
-    TraceListener.prototype.enterEveryRule = function (ctx) {
-        console.log("enter   " + this.ruleNames[ctx.ruleIndex] +
-            ", LT(1)=" + this.tokenStream.LT(1).text);
+    ProfilingATNSimulator$$1.prototype.adaptivePredict = function (input, decision, outerContext) {
+        try {
+            this._input = input;
+            this._startIndex = input.index;
+            // it's possible for SLL to reach a conflict state without consuming any input
+            this._sllStopIndex = this._startIndex - 1;
+            this._llStopIndex = -1;
+            this.currentDecision = decision;
+            this.currentState = undefined;
+            this.conflictingAltResolvedBySLL = ATN.INVALID_ALT_NUMBER;
+            var start = process.hrtime();
+            var alt = _super.prototype.adaptivePredict.call(this, input, decision, outerContext);
+            var stop_1 = process.hrtime();
+            var nanoseconds = (stop_1[0] - start[0]) * 1000000000;
+            if (nanoseconds === 0) {
+                nanoseconds = stop_1[1] - start[1];
+            }
+            else {
+                // Add nanoseconds from start to end of that second, plus start of the end second to end
+                nanoseconds += (1000000000 - start[1]) + stop_1[1];
+            }
+            this.decisions[decision].timeInPrediction += nanoseconds;
+            this.decisions[decision].invocations++;
+            var SLL_k = this._sllStopIndex - this._startIndex + 1;
+            this.decisions[decision].SLL_TotalLook += SLL_k;
+            this.decisions[decision].SLL_MinLook = this.decisions[decision].SLL_MinLook === 0 ? SLL_k : Math.min(this.decisions[decision].SLL_MinLook, SLL_k);
+            if (SLL_k > this.decisions[decision].SLL_MaxLook) {
+                this.decisions[decision].SLL_MaxLook = SLL_k;
+                this.decisions[decision].SLL_MaxLookEvent =
+                    new LookaheadEventInfo(decision, undefined, alt, input, this._startIndex, this._sllStopIndex, false);
+            }
+            if (this._llStopIndex >= 0) {
+                var LL_k = this._llStopIndex - this._startIndex + 1;
+                this.decisions[decision].LL_TotalLook += LL_k;
+                this.decisions[decision].LL_MinLook = this.decisions[decision].LL_MinLook === 0 ? LL_k : Math.min(this.decisions[decision].LL_MinLook, LL_k);
+                if (LL_k > this.decisions[decision].LL_MaxLook) {
+                    this.decisions[decision].LL_MaxLook = LL_k;
+                    this.decisions[decision].LL_MaxLookEvent =
+                        new LookaheadEventInfo(decision, undefined, alt, input, this._startIndex, this._llStopIndex, true);
+                }
+            }
+            return alt;
+        }
+        finally {
+            this._input = undefined;
+            this.currentDecision = -1;
+        }
     };
-    TraceListener.prototype.exitEveryRule = function (ctx) {
-        console.log("exit    " + this.ruleNames[ctx.ruleIndex] +
-            ", LT(1)=" + this.tokenStream.LT(1).text);
+    ProfilingATNSimulator$$1.prototype.getStartState = function (dfa, input, outerContext, useContext) {
+        var state = _super.prototype.getStartState.call(this, dfa, input, outerContext, useContext);
+        this.currentState = state;
+        return state;
     };
-    TraceListener.prototype.visitErrorNode = function (node) {
-        // intentionally empty
+    ProfilingATNSimulator$$1.prototype.computeStartState = function (dfa, globalContext, useContext) {
+        var state = _super.prototype.computeStartState.call(this, dfa, globalContext, useContext);
+        this.currentState = state;
+        return state;
     };
-    TraceListener.prototype.visitTerminal = function (node) {
-        var parent = node.parent.ruleContext;
-        var token = node.symbol;
-        console.log("consume " + token + " rule " + this.ruleNames[parent.ruleIndex]);
+    ProfilingATNSimulator$$1.prototype.computeReachSet = function (dfa, previous, t, contextCache) {
+        if (this._input === undefined) {
+            throw new Error("Invalid state");
+        }
+        var reachState = _super.prototype.computeReachSet.call(this, dfa, previous, t, contextCache);
+        if (reachState == null) {
+            // no reach on current lookahead symbol. ERROR.
+            this.decisions[this.currentDecision].errors.push(new ErrorInfo(this.currentDecision, previous, this._input, this._startIndex, this._input.index));
+        }
+        this.currentState = reachState;
+        return reachState;
+    };
+    ProfilingATNSimulator$$1.prototype.getExistingTargetState = function (previousD, t) {
+        if (this.currentState === undefined || this._input === undefined) {
+            throw new Error("Invalid state");
+        }
+        // this method is called after each time the input position advances
+        if (this.currentState.useContext) {
+            this._llStopIndex = this._input.index;
+        }
+        else {
+            this._sllStopIndex = this._input.index;
+        }
+        var existingTargetState = _super.prototype.getExistingTargetState.call(this, previousD, t);
+        if (existingTargetState != null) {
+            // this method is directly called by execDFA; must construct a SimulatorState
+            // to represent the current state for this case
+            this.currentState = new SimulatorState(this.currentState.outerContext, existingTargetState, this.currentState.useContext, this.currentState.remainingOuterContext);
+            if (this.currentState.useContext) {
+                this.decisions[this.currentDecision].LL_DFATransitions++;
+            }
+            else {
+                this.decisions[this.currentDecision].SLL_DFATransitions++; // count only if we transition over a DFA state
+            }
+            if (existingTargetState === ATNSimulator.ERROR) {
+                var state = new SimulatorState(this.currentState.outerContext, previousD, this.currentState.useContext, this.currentState.remainingOuterContext);
+                this.decisions[this.currentDecision].errors.push(new ErrorInfo(this.currentDecision, state, this._input, this._startIndex, this._input.index));
+            }
+        }
+        return existingTargetState;
+    };
+    ProfilingATNSimulator$$1.prototype.computeTargetState = function (dfa, s, remainingGlobalContext, t, useContext, contextCache) {
+        var targetState = _super.prototype.computeTargetState.call(this, dfa, s, remainingGlobalContext, t, useContext, contextCache);
+        if (useContext) {
+            this.decisions[this.currentDecision].LL_ATNTransitions++;
+        }
+        else {
+            this.decisions[this.currentDecision].SLL_ATNTransitions++;
+        }
+        return targetState;
+    };
+    ProfilingATNSimulator$$1.prototype.evalSemanticContextImpl = function (pred, parserCallStack, alt) {
+        if (this.currentState === undefined || this._input === undefined) {
+            throw new Error("Invalid state");
+        }
+        var result = _super.prototype.evalSemanticContextImpl.call(this, pred, parserCallStack, alt);
+        if (!(pred instanceof SemanticContext.PrecedencePredicate)) {
+            var fullContext = this._llStopIndex >= 0;
+            var stopIndex = fullContext ? this._llStopIndex : this._sllStopIndex;
+            this.decisions[this.currentDecision].predicateEvals.push(new PredicateEvalInfo(this.currentState, this.currentDecision, this._input, this._startIndex, stopIndex, pred, result, alt));
+        }
+        return result;
+    };
+    ProfilingATNSimulator$$1.prototype.reportContextSensitivity = function (dfa, prediction, acceptState, startIndex, stopIndex) {
+        if (this._input === undefined) {
+            throw new Error("Invalid state");
+        }
+        if (prediction !== this.conflictingAltResolvedBySLL) {
+            this.decisions[this.currentDecision].contextSensitivities.push(new ContextSensitivityInfo(this.currentDecision, acceptState, this._input, startIndex, stopIndex));
+        }
+        _super.prototype.reportContextSensitivity.call(this, dfa, prediction, acceptState, startIndex, stopIndex);
+    };
+    ProfilingATNSimulator$$1.prototype.reportAttemptingFullContext = function (dfa, conflictingAlts, conflictState, startIndex, stopIndex) {
+        if (conflictingAlts != null) {
+            this.conflictingAltResolvedBySLL = conflictingAlts.nextSetBit(0);
+        }
+        else {
+            this.conflictingAltResolvedBySLL = conflictState.s0.configs.getRepresentedAlternatives().nextSetBit(0);
+        }
+        this.decisions[this.currentDecision].LL_Fallback++;
+        _super.prototype.reportAttemptingFullContext.call(this, dfa, conflictingAlts, conflictState, startIndex, stopIndex);
+    };
+    ProfilingATNSimulator$$1.prototype.reportAmbiguity = function (dfa, D, startIndex, stopIndex, exact, ambigAlts, configs) {
+        if (this.currentState === undefined || this._input === undefined) {
+            throw new Error("Invalid state");
+        }
+        var prediction;
+        if (ambigAlts != null) {
+            prediction = ambigAlts.nextSetBit(0);
+        }
+        else {
+            prediction = configs.getRepresentedAlternatives().nextSetBit(0);
+        }
+        if (this.conflictingAltResolvedBySLL !== ATN.INVALID_ALT_NUMBER && prediction !== this.conflictingAltResolvedBySLL) {
+            // Even though this is an ambiguity we are reporting, we can
+            // still detect some context sensitivities.  Both SLL and LL
+            // are showing a conflict, hence an ambiguity, but if they resolve
+            // to different minimum alternatives we have also identified a
+            // context sensitivity.
+            this.decisions[this.currentDecision].contextSensitivities.push(new ContextSensitivityInfo(this.currentDecision, this.currentState, this._input, startIndex, stopIndex));
+        }
+        this.decisions[this.currentDecision].ambiguities.push(new AmbiguityInfo(this.currentDecision, this.currentState, ambigAlts, this._input, startIndex, stopIndex));
+        _super.prototype.reportAmbiguity.call(this, dfa, D, startIndex, stopIndex, exact, ambigAlts, configs);
+    };
+    // ---------------------------------------------------------------------
+    ProfilingATNSimulator$$1.prototype.getDecisionInfo = function () {
+        return this.decisions;
+    };
+    ProfilingATNSimulator$$1.prototype.getCurrentState = function () {
+        return this.currentState;
     };
     __decorate([
         Override
-    ], TraceListener.prototype, "enterEveryRule", null);
+    ], ProfilingATNSimulator$$1.prototype, "adaptivePredict", null);
     __decorate([
         Override
-    ], TraceListener.prototype, "exitEveryRule", null);
+    ], ProfilingATNSimulator$$1.prototype, "getStartState", null);
     __decorate([
         Override
-    ], TraceListener.prototype, "visitErrorNode", null);
+    ], ProfilingATNSimulator$$1.prototype, "computeStartState", null);
     __decorate([
         Override
-    ], TraceListener.prototype, "visitTerminal", null);
-    return TraceListener;
-}());
+    ], ProfilingATNSimulator$$1.prototype, "computeReachSet", null);
+    __decorate([
+        Override
+    ], ProfilingATNSimulator$$1.prototype, "getExistingTargetState", null);
+    __decorate([
+        Override
+    ], ProfilingATNSimulator$$1.prototype, "computeTargetState", null);
+    __decorate([
+        Override
+    ], ProfilingATNSimulator$$1.prototype, "evalSemanticContextImpl", null);
+    __decorate([
+        Override
+    ], ProfilingATNSimulator$$1.prototype, "reportContextSensitivity", null);
+    __decorate([
+        Override
+    ], ProfilingATNSimulator$$1.prototype, "reportAttemptingFullContext", null);
+    __decorate([
+        Override,
+        __param(0, NotNull), __param(5, NotNull), __param(6, NotNull)
+    ], ProfilingATNSimulator$$1.prototype, "reportAmbiguity", null);
+    return ProfilingATNSimulator$$1;
+}(ParserATNSimulator));
 /** This is all the parsing support code essentially; most of it is error recovery stuff. */
-var Parser = /** @class */ (function (_super) {
-    __extends(Parser, _super);
-    function Parser(input) {
+var Parser$$1 = /** @class */ (function (_super) {
+    __extends(Parser$$1, _super);
+    function Parser$$1(input) {
         var _this = _super.call(this) || this;
         /**
          * The error handling strategy for the parser. The default value is a new
@@ -21157,7 +20756,7 @@ var Parser = /** @class */ (function (_super) {
         _this.inputStream = input;
         return _this;
     }
-    Parser.prototype.reset = function (resetInput) {
+    Parser$$1.prototype.reset = function (resetInput) {
         // Note: this method executes when not parsing, so _ctx can be undefined
         if (resetInput === undefined || resetInput) {
             this.inputStream.seek(0);
@@ -21192,7 +20791,7 @@ var Parser = /** @class */ (function (_super) {
      * `ttype` and the error strategy could not recover from the
      * mismatched symbol
      */
-    Parser.prototype.match = function (ttype) {
+    Parser$$1.prototype.match = function (ttype) {
         var t = this.currentToken;
         if (t.type === ttype) {
             if (ttype === Token.EOF) {
@@ -21228,7 +20827,7 @@ var Parser = /** @class */ (function (_super) {
      * a wildcard and the error strategy could not recover from the mismatched
      * symbol
      */
-    Parser.prototype.matchWildcard = function () {
+    Parser$$1.prototype.matchWildcard = function () {
         var t = this.currentToken;
         if (t.type > 0) {
             this._errHandler.reportMatch(this);
@@ -21244,7 +20843,7 @@ var Parser = /** @class */ (function (_super) {
         }
         return t;
     };
-    Object.defineProperty(Parser.prototype, "buildParseTree", {
+    Object.defineProperty(Parser$$1.prototype, "buildParseTree", {
         /**
          * Gets whether or not a complete parse tree will be constructed while
          * parsing. This property is `true` for a newly constructed parser.
@@ -21276,7 +20875,7 @@ var Parser = /** @class */ (function (_super) {
         enumerable: true,
         configurable: true
     });
-    Parser.prototype.getParseListeners = function () {
+    Parser$$1.prototype.getParseListeners = function () {
         return this._parseListeners;
     };
     /**
@@ -21306,7 +20905,7 @@ var Parser = /** @class */ (function (_super) {
      *
      * @throws {@link TypeError} if `listener` is `undefined`
      */
-    Parser.prototype.addParseListener = function (listener) {
+    Parser$$1.prototype.addParseListener = function (listener) {
         if (listener == null) {
             throw new TypeError("listener cannot be null");
         }
@@ -21322,7 +20921,7 @@ var Parser = /** @class */ (function (_super) {
      *
      * @param listener the listener to remove
      */
-    Parser.prototype.removeParseListener = function (listener) {
+    Parser$$1.prototype.removeParseListener = function (listener) {
         var index = this._parseListeners.findIndex(function (l) { return l === listener; });
         if (index !== -1) {
             this._parseListeners.splice(index, 1);
@@ -21333,7 +20932,7 @@ var Parser = /** @class */ (function (_super) {
      *
      * @see #addParseListener
      */
-    Parser.prototype.removeParseListeners = function () {
+    Parser$$1.prototype.removeParseListeners = function () {
         this._parseListeners.length = 0;
     };
     /**
@@ -21341,7 +20940,7 @@ var Parser = /** @class */ (function (_super) {
      *
      * @see #addParseListener
      */
-    Parser.prototype.triggerEnterRuleEvent = function () {
+    Parser$$1.prototype.triggerEnterRuleEvent = function () {
         try {
             for (var _a = __values(this._parseListeners), _b = _a.next(); !_b.done; _b = _a.next()) {
                 var listener = _b.value;
@@ -21351,21 +20950,21 @@ var Parser = /** @class */ (function (_super) {
                 this._ctx.enterRule(listener);
             }
         }
-        catch (e_1_1) { e_1 = { error: e_1_1 }; }
+        catch (e_2_1) { e_2 = { error: e_2_1 }; }
         finally {
             try {
                 if (_b && !_b.done && (_c = _a.return)) _c.call(_a);
             }
-            finally { if (e_1) throw e_1.error; }
+            finally { if (e_2) throw e_2.error; }
         }
-        var e_1, _c;
+        var e_2, _c;
     };
     /**
      * Notify any parse listeners of an exit rule event.
      *
      * @see #addParseListener
      */
-    Parser.prototype.triggerExitRuleEvent = function () {
+    Parser$$1.prototype.triggerExitRuleEvent = function () {
         // reverse order walk of listeners
         for (var i = this._parseListeners.length - 1; i >= 0; i--) {
             var listener = this._parseListeners[i];
@@ -21375,7 +20974,7 @@ var Parser = /** @class */ (function (_super) {
             }
         }
     };
-    Object.defineProperty(Parser.prototype, "numberOfSyntaxErrors", {
+    Object.defineProperty(Parser$$1.prototype, "numberOfSyntaxErrors", {
         /**
          * Gets the number of syntax errors reported during parsing. This value is
          * incremented each time {@link #notifyErrorListeners} is called.
@@ -21388,7 +20987,7 @@ var Parser = /** @class */ (function (_super) {
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(Parser.prototype, "tokenFactory", {
+    Object.defineProperty(Parser$$1.prototype, "tokenFactory", {
         get: function () {
             return this._input.tokenSource.tokenFactory;
         },
@@ -21402,21 +21001,21 @@ var Parser = /** @class */ (function (_super) {
      * @ if the current parser does not
      * implement the `serializedATN` property.
      */
-    Parser.prototype.getATNWithBypassAlts = function () {
+    Parser$$1.prototype.getATNWithBypassAlts = function () {
         var serializedAtn = this.serializedATN;
         if (serializedAtn == null) {
             throw new Error("The current parser does not support an ATN with bypass alternatives.");
         }
-        var result = Parser.bypassAltsAtnCache.get(serializedAtn);
+        var result = Parser$$1.bypassAltsAtnCache.get(serializedAtn);
         if (result == null) {
             var deserializationOptions = new ATNDeserializationOptions();
             deserializationOptions.isGenerateRuleBypassTransitions = true;
             result = new ATNDeserializer(deserializationOptions).deserialize(toCharArray(serializedAtn));
-            Parser.bypassAltsAtnCache.set(serializedAtn, result);
+            Parser$$1.bypassAltsAtnCache.set(serializedAtn, result);
         }
         return result;
     };
-    Parser.prototype.compileParseTreePattern = function (pattern, patternRuleIndex, lexer) {
+    Parser$$1.prototype.compileParseTreePattern = function (pattern, patternRuleIndex, lexer) {
         return __awaiter(this, void 0, void 0, function () {
             var tokenSource, currentLexer, matcher;
             return __generator(this, function (_a) {
@@ -21437,7 +21036,7 @@ var Parser = /** @class */ (function (_super) {
             });
         });
     };
-    Object.defineProperty(Parser.prototype, "errorHandler", {
+    Object.defineProperty(Parser$$1.prototype, "errorHandler", {
         get: function () {
             return this._errHandler;
         },
@@ -21447,7 +21046,7 @@ var Parser = /** @class */ (function (_super) {
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(Parser.prototype, "inputStream", {
+    Object.defineProperty(Parser$$1.prototype, "inputStream", {
         get: function () {
             return this._input;
         },
@@ -21459,7 +21058,7 @@ var Parser = /** @class */ (function (_super) {
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(Parser.prototype, "currentToken", {
+    Object.defineProperty(Parser$$1.prototype, "currentToken", {
         /** Match needs to return the current input symbol, which gets put
          *  into the label for the associated token ref; e.g., x=ID.
          */
@@ -21469,7 +21068,7 @@ var Parser = /** @class */ (function (_super) {
         enumerable: true,
         configurable: true
     });
-    Parser.prototype.notifyErrorListeners = function (msg, offendingToken, e) {
+    Parser$$1.prototype.notifyErrorListeners = function (msg, offendingToken, e) {
         if (offendingToken === undefined) {
             offendingToken = this.currentToken;
         }
@@ -21509,9 +21108,9 @@ var Parser = /** @class */ (function (_super) {
      * {@link ParseTreeListener#visitErrorNode} is called on any parse
      * listeners.
      */
-    Parser.prototype.consume = function () {
+    Parser$$1.prototype.consume = function () {
         var o = this.currentToken;
-        if (o.type !== Parser.EOF) {
+        if (o.type !== Parser$$1.EOF) {
             this.inputStream.consume();
         }
         var hasListener = this._parseListeners.length !== 0;
@@ -21527,12 +21126,12 @@ var Parser = /** @class */ (function (_super) {
                             }
                         }
                     }
-                    catch (e_2_1) { e_2 = { error: e_2_1 }; }
+                    catch (e_3_1) { e_3 = { error: e_3_1 }; }
                     finally {
                         try {
                             if (_b && !_b.done && (_c = _a.return)) _c.call(_a);
                         }
-                        finally { if (e_2) throw e_2.error; }
+                        finally { if (e_3) throw e_3.error; }
                     }
                 }
             }
@@ -21547,20 +21146,20 @@ var Parser = /** @class */ (function (_super) {
                             }
                         }
                     }
-                    catch (e_3_1) { e_3 = { error: e_3_1 }; }
+                    catch (e_4_1) { e_4 = { error: e_4_1 }; }
                     finally {
                         try {
                             if (_e && !_e.done && (_f = _d.return)) _f.call(_d);
                         }
-                        finally { if (e_3) throw e_3.error; }
+                        finally { if (e_4) throw e_4.error; }
                     }
                 }
             }
         }
         return o;
-        var e_2, _c, e_3, _f;
+        var e_3, _c, e_4, _f;
     };
-    Parser.prototype.addContextToParseTree = function () {
+    Parser$$1.prototype.addContextToParseTree = function () {
         var parent = this._ctx._parent;
         // add current context to parent if we have a parent
         if (parent != null) {
@@ -21571,7 +21170,7 @@ var Parser = /** @class */ (function (_super) {
      * Always called by generated parsers upon entry to a rule. Access field
      * {@link #_ctx} get the current context.
      */
-    Parser.prototype.enterRule = function (localctx, state, ruleIndex) {
+    Parser$$1.prototype.enterRule = function (localctx, state, ruleIndex) {
         this.state = state;
         this._ctx = localctx;
         this._ctx._start = this._input.LT(1);
@@ -21580,7 +21179,7 @@ var Parser = /** @class */ (function (_super) {
         }
         this.triggerEnterRuleEvent();
     };
-    Parser.prototype.enterLeftFactoredRule = function (localctx, state, ruleIndex) {
+    Parser$$1.prototype.enterLeftFactoredRule = function (localctx, state, ruleIndex) {
         this.state = state;
         if (this._buildParseTrees) {
             var factoredContext = this._ctx.getChild(this._ctx.childCount - 1);
@@ -21595,7 +21194,7 @@ var Parser = /** @class */ (function (_super) {
         }
         this.triggerEnterRuleEvent();
     };
-    Parser.prototype.exitRule = function () {
+    Parser$$1.prototype.exitRule = function () {
         if (this.matchedEOF) {
             // if we have matched EOF, it cannot consume past EOF so we use LT(1) here
             this._ctx._stop = this._input.LT(1); // LT(1) will be end of file
@@ -21608,7 +21207,7 @@ var Parser = /** @class */ (function (_super) {
         this.state = this._ctx.invokingState;
         this._ctx = this._ctx._parent;
     };
-    Parser.prototype.enterOuterAlt = function (localctx, altNum) {
+    Parser$$1.prototype.enterOuterAlt = function (localctx, altNum) {
         localctx.altNumber = altNum;
         // if we have new localctx, make sure we replace existing ctx
         // that is previous child of parse tree
@@ -21621,7 +21220,7 @@ var Parser = /** @class */ (function (_super) {
         }
         this._ctx = localctx;
     };
-    Object.defineProperty(Parser.prototype, "precedence", {
+    Object.defineProperty(Parser$$1.prototype, "precedence", {
         /**
          * Get the precedence level for the top-most precedence rule.
          *
@@ -21637,7 +21236,7 @@ var Parser = /** @class */ (function (_super) {
         enumerable: true,
         configurable: true
     });
-    Parser.prototype.enterRecursionRule = function (localctx, state, ruleIndex, precedence) {
+    Parser$$1.prototype.enterRecursionRule = function (localctx, state, ruleIndex, precedence) {
         this.state = state;
         this._precedenceStack.push(precedence);
         this._ctx = localctx;
@@ -21647,7 +21246,7 @@ var Parser = /** @class */ (function (_super) {
     /** Like {@link #enterRule} but for recursive rules.
      *  Make the current context the child of the incoming localctx.
      */
-    Parser.prototype.pushNewRecursionContext = function (localctx, state, ruleIndex) {
+    Parser$$1.prototype.pushNewRecursionContext = function (localctx, state, ruleIndex) {
         var previous = this._ctx;
         previous._parent = localctx;
         previous.invokingState = state;
@@ -21659,7 +21258,7 @@ var Parser = /** @class */ (function (_super) {
         }
         this.triggerEnterRuleEvent(); // simulates rule entry for left-recursive rules
     };
-    Parser.prototype.unrollRecursionContexts = function (_parentctx) {
+    Parser$$1.prototype.unrollRecursionContexts = function (_parentctx) {
         this._precedenceStack.pop();
         this._ctx._stop = this._input.tryLT(-1);
         var retctx = this._ctx; // save current ctx (return value)
@@ -21680,14 +21279,14 @@ var Parser = /** @class */ (function (_super) {
             _parentctx.addChild(retctx);
         }
     };
-    Parser.prototype.getInvokingContext = function (ruleIndex) {
+    Parser$$1.prototype.getInvokingContext = function (ruleIndex) {
         var p = this._ctx;
         while (p && p.ruleIndex !== ruleIndex) {
             p = p._parent;
         }
         return p;
     };
-    Object.defineProperty(Parser.prototype, "context", {
+    Object.defineProperty(Parser$$1.prototype, "context", {
         get: function () {
             return this._ctx;
         },
@@ -21697,13 +21296,13 @@ var Parser = /** @class */ (function (_super) {
         enumerable: true,
         configurable: true
     });
-    Parser.prototype.precpred = function (localctx, precedence) {
+    Parser$$1.prototype.precpred = function (localctx, precedence) {
         return precedence >= this._precedenceStack.peek();
     };
-    Parser.prototype.getErrorListenerDispatch = function () {
+    Parser$$1.prototype.getErrorListenerDispatch = function () {
         return new ProxyParserErrorListener(this.getErrorListeners());
     };
-    Parser.prototype.inContext = function (context) {
+    Parser$$1.prototype.inContext = function (context) {
         // TODO: useful in parser?
         return false;
     };
@@ -21721,7 +21320,7 @@ var Parser = /** @class */ (function (_super) {
      * @returns `true` if `symbol` can follow the current state in
      * the ATN, otherwise `false`.
      */
-    Parser.prototype.isExpectedToken = function (symbol) {
+    Parser$$1.prototype.isExpectedToken = function (symbol) {
         //   		return interpreter.atn.nextTokens(_ctx);
         var atn = this.interpreter.atn;
         var ctx = this._ctx;
@@ -21748,7 +21347,7 @@ var Parser = /** @class */ (function (_super) {
         }
         return false;
     };
-    Object.defineProperty(Parser.prototype, "isMatchedEOF", {
+    Object.defineProperty(Parser$$1.prototype, "isMatchedEOF", {
         get: function () {
             return this.matchedEOF;
         },
@@ -21762,23 +21361,23 @@ var Parser = /** @class */ (function (_super) {
      *
      * @see ATN#getExpectedTokens(int, RuleContext)
      */
-    Parser.prototype.getExpectedTokens = function () {
+    Parser$$1.prototype.getExpectedTokens = function () {
         return this.atn.getExpectedTokens(this.state, this.context);
     };
-    Parser.prototype.getExpectedTokensWithinCurrentRule = function () {
+    Parser$$1.prototype.getExpectedTokensWithinCurrentRule = function () {
         var atn = this.interpreter.atn;
         var s = atn.states[this.state];
         return atn.nextTokens(s);
     };
     /** Get a rule's index (i.e., `RULE_ruleName` field) or -1 if not found. */
-    Parser.prototype.getRuleIndex = function (ruleName) {
+    Parser$$1.prototype.getRuleIndex = function (ruleName) {
         var ruleIndex = this.getRuleIndexMap().get(ruleName);
         if (ruleIndex != null) {
             return ruleIndex;
         }
         return -1;
     };
-    Object.defineProperty(Parser.prototype, "ruleContext", {
+    Object.defineProperty(Parser$$1.prototype, "ruleContext", {
         get: function () { return this._ctx; },
         enumerable: true,
         configurable: true
@@ -21790,7 +21389,7 @@ var Parser = /** @class */ (function (_super) {
      *
      *  This is very useful for error messages.
      */
-    Parser.prototype.getRuleInvocationStack = function (ctx) {
+    Parser$$1.prototype.getRuleInvocationStack = function (ctx) {
         if (ctx === void 0) { ctx = this._ctx; }
         var p = ctx; // Workaround for Microsoft/TypeScript#14487
         var ruleNames = this.ruleNames;
@@ -21809,7 +21408,7 @@ var Parser = /** @class */ (function (_super) {
         return stack;
     };
     /** For debugging and other purposes. */
-    Parser.prototype.getDFAStrings = function () {
+    Parser$$1.prototype.getDFAStrings = function () {
         var s = [];
         try {
             for (var _a = __values(this._interp.atn.decisionToDFA), _b = _a.next(); !_b.done; _b = _a.next()) {
@@ -21817,18 +21416,18 @@ var Parser = /** @class */ (function (_super) {
                 s.push(dfa.toString(this.vocabulary, this.ruleNames));
             }
         }
-        catch (e_4_1) { e_4 = { error: e_4_1 }; }
+        catch (e_5_1) { e_5 = { error: e_5_1 }; }
         finally {
             try {
                 if (_b && !_b.done && (_c = _a.return)) _c.call(_a);
             }
-            finally { if (e_4) throw e_4.error; }
+            finally { if (e_5) throw e_5.error; }
         }
         return s;
-        var e_4, _c;
+        var e_5, _c;
     };
     /** For debugging and other purposes. */
-    Parser.prototype.dumpDFA = function () {
+    Parser$$1.prototype.dumpDFA = function () {
         var seenOne = false;
         try {
             for (var _a = __values(this._interp.atn.decisionToDFA), _b = _a.next(); !_b.done; _b = _a.next()) {
@@ -21843,28 +21442,28 @@ var Parser = /** @class */ (function (_super) {
                 }
             }
         }
-        catch (e_5_1) { e_5 = { error: e_5_1 }; }
+        catch (e_6_1) { e_6 = { error: e_6_1 }; }
         finally {
             try {
                 if (_b && !_b.done && (_c = _a.return)) _c.call(_a);
             }
-            finally { if (e_5) throw e_5.error; }
+            finally { if (e_6) throw e_6.error; }
         }
-        var e_5, _c;
+        var e_6, _c;
     };
-    Object.defineProperty(Parser.prototype, "sourceName", {
+    Object.defineProperty(Parser$$1.prototype, "sourceName", {
         get: function () {
             return this._input.sourceName;
         },
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(Parser.prototype, "parseInfo", {
+    Object.defineProperty(Parser$$1.prototype, "parseInfo", {
         get: function () {
             var _this = this;
             return new Promise(function (resolve, reject) {
                 var interp = _this.interpreter;
-                if (interp instanceof ProfilingATNSimulator) {
+                if (interp instanceof ProfilingATNSimulator$$1) {
                     resolve(new ParseInfo(interp));
                 }
                 resolve();
@@ -21876,17 +21475,17 @@ var Parser = /** @class */ (function (_super) {
     /**
      * @since 4.3
      */
-    Parser.prototype.setProfile = function (profile) {
+    Parser$$1.prototype.setProfile = function (profile) {
         return __awaiter(this, void 0, void 0, function () {
             var interp;
             return __generator(this, function (_a) {
                 interp = this.interpreter;
                 if (profile) {
-                    if (!(interp instanceof ProfilingATNSimulator)) {
-                        this.interpreter = new ProfilingATNSimulator(this);
+                    if (!(interp instanceof ProfilingATNSimulator$$1)) {
+                        this.interpreter = new ProfilingATNSimulator$$1(this);
                     }
                 }
-                else if (interp instanceof ProfilingATNSimulator) {
+                else if (interp instanceof ProfilingATNSimulator$$1) {
                     this.interpreter = new ParserATNSimulator(this.atn, this);
                 }
                 this.interpreter.setPredictionMode(interp.getPredictionMode());
@@ -21894,7 +21493,7 @@ var Parser = /** @class */ (function (_super) {
             });
         });
     };
-    Object.defineProperty(Parser.prototype, "isTrace", {
+    Object.defineProperty(Parser$$1.prototype, "isTrace", {
         /**
          * Gets whether a {@link TraceListener} is registered as a parse listener
          * for the parser.
@@ -21931,55 +21530,55 @@ var Parser = /** @class */ (function (_super) {
      *
      * @see ATNDeserializationOptions.isGenerateRuleBypassTransitions
      */
-    Parser.bypassAltsAtnCache = new Map();
+    Parser$$1.bypassAltsAtnCache = new Map();
     __decorate([
         NotNull
-    ], Parser.prototype, "_errHandler", void 0);
+    ], Parser$$1.prototype, "_errHandler", void 0);
     __decorate([
         NotNull
-    ], Parser.prototype, "match", null);
+    ], Parser$$1.prototype, "match", null);
     __decorate([
         NotNull
-    ], Parser.prototype, "matchWildcard", null);
+    ], Parser$$1.prototype, "matchWildcard", null);
     __decorate([
         NotNull
-    ], Parser.prototype, "getParseListeners", null);
+    ], Parser$$1.prototype, "getParseListeners", null);
     __decorate([
         __param(0, NotNull)
-    ], Parser.prototype, "addParseListener", null);
+    ], Parser$$1.prototype, "addParseListener", null);
     __decorate([
         NotNull
-    ], Parser.prototype, "getATNWithBypassAlts", null);
+    ], Parser$$1.prototype, "getATNWithBypassAlts", null);
     __decorate([
         NotNull,
         __param(0, NotNull)
-    ], Parser.prototype, "errorHandler", null);
+    ], Parser$$1.prototype, "errorHandler", null);
     __decorate([
         Override
-    ], Parser.prototype, "inputStream", null);
+    ], Parser$$1.prototype, "inputStream", null);
     __decorate([
         NotNull
-    ], Parser.prototype, "currentToken", null);
+    ], Parser$$1.prototype, "currentToken", null);
     __decorate([
         __param(0, NotNull)
-    ], Parser.prototype, "enterRule", null);
+    ], Parser$$1.prototype, "enterRule", null);
     __decorate([
         Override,
         __param(0, Nullable)
-    ], Parser.prototype, "precpred", null);
+    ], Parser$$1.prototype, "precpred", null);
     __decorate([
         Override
-    ], Parser.prototype, "getErrorListenerDispatch", null);
+    ], Parser$$1.prototype, "getErrorListenerDispatch", null);
     __decorate([
         NotNull
-    ], Parser.prototype, "getExpectedTokens", null);
+    ], Parser$$1.prototype, "getExpectedTokens", null);
     __decorate([
         NotNull
-    ], Parser.prototype, "getExpectedTokensWithinCurrentRule", null);
+    ], Parser$$1.prototype, "getExpectedTokensWithinCurrentRule", null);
     __decorate([
         Override
-    ], Parser.prototype, "parseInfo", null);
-    return Parser;
+    ], Parser$$1.prototype, "parseInfo", null);
+    return Parser$$1;
 }(Recognizer));
 
 /*!
@@ -21995,7 +21594,7 @@ var NoViableAltException = /** @class */ (function (_super) {
     __extends(NoViableAltException, _super);
     function NoViableAltException(recognizer, input, startToken, offendingToken, deadEndConfigs, ctx) {
         var _this = this;
-        if (recognizer instanceof Parser) {
+        if (recognizer instanceof Parser$$1) {
             if (input === undefined) {
                 input = recognizer.inputStream;
             }
@@ -23092,6 +22691,47 @@ var DiagnosticErrorListener = /** @class */ (function () {
  * Copyright 2016 The ANTLR Project. All rights reserved.
  * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
  */
+/**
+ * This class extends {@link ParserRuleContext} by allowing the value of
+ * {@link #getRuleIndex} to be explicitly set for the context.
+ *
+ * {@link ParserRuleContext} does not include field storage for the rule index
+ * since the context classes created by the code generator override the
+ * {@link #getRuleIndex} method to return the correct value for that context.
+ * Since the parser interpreter does not use the context classes generated for a
+ * parser, this class (with slightly more memory overhead per node) is used to
+ * provide equivalent functionality.
+ */
+var InterpreterRuleContext = /** @class */ (function (_super) {
+    __extends(InterpreterRuleContext, _super);
+    function InterpreterRuleContext(ruleIndex, parent, invokingStateNumber) {
+        var _this = this;
+        if (invokingStateNumber !== undefined) {
+            _this = _super.call(this, parent, invokingStateNumber) || this;
+        }
+        else {
+            _this = _super.call(this) || this;
+        }
+        _this._ruleIndex = ruleIndex;
+        return _this;
+    }
+    Object.defineProperty(InterpreterRuleContext.prototype, "ruleIndex", {
+        get: function () {
+            return this._ruleIndex;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    __decorate([
+        Override
+    ], InterpreterRuleContext.prototype, "ruleIndex", null);
+    return InterpreterRuleContext;
+}(ParserRuleContext));
+
+/*!
+ * Copyright 2016 The ANTLR Project. All rights reserved.
+ * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
+ */
 var LexerInterpreter = /** @class */ (function (_super) {
     __extends(LexerInterpreter, _super);
     function LexerInterpreter(grammarFileName, vocabulary, modeNames, ruleNames, atn, input) {
@@ -23165,6 +22805,638 @@ var LexerInterpreter = /** @class */ (function (_super) {
     ], LexerInterpreter);
     return LexerInterpreter;
 }(Lexer));
+
+/*!
+* Copyright 2016 The ANTLR Project. All rights reserved.
+* Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
+*/
+/**
+ * Provides an implementation of {@link TokenSource} as a wrapper around a list
+ * of {@link Token} objects.
+ *
+ * If the final token in the list is an {@link Token#EOF} token, it will be used
+ * as the EOF token for every call to {@link #nextToken} after the end of the
+ * list is reached. Otherwise, an EOF token will be created.
+ */
+var ListTokenSource = /** @class */ (function () {
+    /**
+     * Constructs a new {@link ListTokenSource} instance from the specified
+     * collection of {@link Token} objects and source name.
+     *
+     * @param tokens The collection of {@link Token} objects to provide as a
+     * {@link TokenSource}.
+     * @param sourceName The name of the {@link TokenSource}. If this value is
+     * `undefined`, {@link #getSourceName} will attempt to infer the name from
+     * the next {@link Token} (or the previous token if the end of the input has
+     * been reached).
+     *
+     * @exception NullPointerException if `tokens` is `undefined`
+     */
+    function ListTokenSource(tokens, sourceName) {
+        /**
+         * The index into {@link #tokens} of token to return by the next call to
+         * {@link #nextToken}. The end of the input is indicated by this value
+         * being greater than or equal to the number of items in {@link #tokens}.
+         */
+        this.i = 0;
+        /**
+         * This is the backing field for {@link #getTokenFactory} and
+         * {@link setTokenFactory}.
+         */
+        this._factory = CommonTokenFactory.DEFAULT;
+        if (tokens == null) {
+            throw new Error("tokens cannot be null");
+        }
+        this.tokens = tokens;
+        this._sourceName = sourceName;
+    }
+    Object.defineProperty(ListTokenSource.prototype, "charPositionInLine", {
+        /**
+         * {@inheritDoc}
+         */
+        get: function () {
+            if (this.i < this.tokens.length) {
+                return this.tokens[this.i].charPositionInLine;
+            }
+            else if (this.eofToken != null) {
+                return this.eofToken.charPositionInLine;
+            }
+            else if (this.tokens.length > 0) {
+                // have to calculate the result from the line/column of the previous
+                // token, along with the text of the token.
+                var lastToken = this.tokens[this.tokens.length - 1];
+                var tokenText = lastToken.text;
+                if (tokenText != null) {
+                    var lastNewLine = tokenText.lastIndexOf("\n");
+                    if (lastNewLine >= 0) {
+                        return tokenText.length - lastNewLine - 1;
+                    }
+                }
+                return lastToken.charPositionInLine + lastToken.stopIndex - lastToken.startIndex + 1;
+            }
+            // only reach this if tokens is empty, meaning EOF occurs at the first
+            // position in the input
+            return 0;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    /**
+     * {@inheritDoc}
+     */
+    ListTokenSource.prototype.nextToken = function () {
+        if (this.i >= this.tokens.length) {
+            if (this.eofToken == null) {
+                var start = -1;
+                if (this.tokens.length > 0) {
+                    var previousStop = this.tokens[this.tokens.length - 1].stopIndex;
+                    if (previousStop !== -1) {
+                        start = previousStop + 1;
+                    }
+                }
+                var stop_1 = Math.max(-1, start - 1);
+                this.eofToken = this._factory.create({ source: this, stream: this.inputStream }, Token.EOF, "EOF", Token.DEFAULT_CHANNEL, start, stop_1, this.line, this.charPositionInLine);
+            }
+            return this.eofToken;
+        }
+        var t = this.tokens[this.i];
+        if (this.i === this.tokens.length - 1 && t.type === Token.EOF) {
+            this.eofToken = t;
+        }
+        this.i++;
+        return t;
+    };
+    Object.defineProperty(ListTokenSource.prototype, "line", {
+        /**
+         * {@inheritDoc}
+         */
+        get: function () {
+            if (this.i < this.tokens.length) {
+                return this.tokens[this.i].line;
+            }
+            else if (this.eofToken != null) {
+                return this.eofToken.line;
+            }
+            else if (this.tokens.length > 0) {
+                // have to calculate the result from the line/column of the previous
+                // token, along with the text of the token.
+                var lastToken = this.tokens[this.tokens.length - 1];
+                var line = lastToken.line;
+                var tokenText = lastToken.text;
+                if (tokenText != null) {
+                    for (var i = 0; i < tokenText.length; i++) {
+                        if (tokenText.charAt(i) === "\n") {
+                            line++;
+                        }
+                    }
+                }
+                // if no text is available, assume the token did not contain any newline characters.
+                return line;
+            }
+            // only reach this if tokens is empty, meaning EOF occurs at the first
+            // position in the input
+            return 1;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ListTokenSource.prototype, "inputStream", {
+        /**
+         * {@inheritDoc}
+         */
+        get: function () {
+            if (this.i < this.tokens.length) {
+                return this.tokens[this.i].inputStream;
+            }
+            else if (this.eofToken != null) {
+                return this.eofToken.inputStream;
+            }
+            else if (this.tokens.length > 0) {
+                return this.tokens[this.tokens.length - 1].inputStream;
+            }
+            // no input stream information is available
+            return undefined;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ListTokenSource.prototype, "sourceName", {
+        /**
+         * {@inheritDoc}
+         */
+        get: function () {
+            if (this._sourceName) {
+                return this._sourceName;
+            }
+            var inputStream = this.inputStream;
+            if (inputStream != null) {
+                return inputStream.sourceName;
+            }
+            return "List";
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ListTokenSource.prototype, "tokenFactory", {
+        /**
+         * {@inheritDoc}
+         */
+        get: function () {
+            return this._factory;
+        },
+        /**
+         * {@inheritDoc}
+         */
+        // @Override
+        set: function (factory) {
+            this._factory = factory;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    __decorate([
+        Override
+    ], ListTokenSource.prototype, "charPositionInLine", null);
+    __decorate([
+        Override
+    ], ListTokenSource.prototype, "nextToken", null);
+    __decorate([
+        Override
+    ], ListTokenSource.prototype, "line", null);
+    __decorate([
+        Override
+    ], ListTokenSource.prototype, "inputStream", null);
+    __decorate([
+        Override
+    ], ListTokenSource.prototype, "sourceName", null);
+    __decorate([
+        Override,
+        NotNull,
+        __param(0, NotNull)
+    ], ListTokenSource.prototype, "tokenFactory", null);
+    ListTokenSource = __decorate([
+        __param(0, NotNull)
+    ], ListTokenSource);
+    return ListTokenSource;
+}());
+
+/*!
+ * Copyright 2016 The ANTLR Project. All rights reserved.
+ * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
+ */
+/** A parser simulator that mimics what ANTLR's generated
+ *  parser code does. A ParserATNSimulator is used to make
+ *  predictions via adaptivePredict but this class moves a pointer through the
+ *  ATN to simulate parsing. ParserATNSimulator just
+ *  makes us efficient rather than having to backtrack, for example.
+ *
+ *  This properly creates parse trees even for left recursive rules.
+ *
+ *  We rely on the left recursive rule invocation and special predicate
+ *  transitions to make left recursive rules work.
+ *
+ *  See TestParserInterpreter for examples.
+ */
+var ParserInterpreter = /** @class */ (function (_super) {
+    __extends(ParserInterpreter, _super);
+    function ParserInterpreter(grammarFileName, vocabulary, ruleNames, atn, input) {
+        var _this = _super.call(this, grammarFileName instanceof ParserInterpreter ? grammarFileName.inputStream : input) || this;
+        /** This stack corresponds to the _parentctx, _parentState pair of locals
+         *  that would exist on call stack frames with a recursive descent parser;
+         *  in the generated function for a left-recursive rule you'd see:
+         *
+         *  private EContext e(int _p) {
+         *      ParserRuleContext _parentctx = _ctx;    // Pair.a
+         *      int _parentState = state;          // Pair.b
+         *      ...
+         *  }
+         *
+         *  Those values are used to create new recursive rule invocation contexts
+         *  associated with left operand of an alt like "expr '*' expr".
+         */
+        _this._parentContextStack = [];
+        /** We need a map from (decision,inputIndex)->forced alt for computing ambiguous
+         *  parse trees. For now, we allow exactly one override.
+         */
+        _this.overrideDecision = -1;
+        _this.overrideDecisionInputIndex = -1;
+        _this.overrideDecisionAlt = -1;
+        _this.overrideDecisionReached = false; // latch and only override once; error might trigger infinite loop
+        /** What is the current context when we override a decisions?  This tells
+         *  us what the root of the parse tree is when using override
+         *  for an ambiguity/lookahead check.
+         */
+        _this._overrideDecisionRoot = undefined;
+        if (grammarFileName instanceof ParserInterpreter) {
+            var old = grammarFileName;
+            _this._grammarFileName = old._grammarFileName;
+            _this._atn = old._atn;
+            _this.pushRecursionContextStates = old.pushRecursionContextStates;
+            _this._ruleNames = old._ruleNames;
+            _this._vocabulary = old._vocabulary;
+            _this.interpreter = new ParserATNSimulator(_this._atn, _this);
+        }
+        else {
+            // The second constructor requires non-null arguments
+            vocabulary = vocabulary;
+            ruleNames = ruleNames;
+            atn = atn;
+            _this._grammarFileName = grammarFileName;
+            _this._atn = atn;
+            _this._ruleNames = ruleNames.slice(0);
+            _this._vocabulary = vocabulary;
+            // identify the ATN states where pushNewRecursionContext() must be called
+            _this.pushRecursionContextStates = new BitSet(atn.states.length);
+            try {
+                for (var _a = __values(atn.states), _b = _a.next(); !_b.done; _b = _a.next()) {
+                    var state = _b.value;
+                    if (!(state instanceof StarLoopEntryState)) {
+                        continue;
+                    }
+                    if (state.precedenceRuleDecision) {
+                        _this.pushRecursionContextStates.set(state.stateNumber);
+                    }
+                }
+            }
+            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            finally {
+                try {
+                    if (_b && !_b.done && (_c = _a.return)) _c.call(_a);
+                }
+                finally { if (e_1) throw e_1.error; }
+            }
+            // get atn simulator that knows how to do predictions
+            _this.interpreter = new ParserATNSimulator(atn, _this);
+        }
+        return _this;
+        var e_1, _c;
+    }
+    ParserInterpreter.prototype.reset = function (resetInput) {
+        if (resetInput === undefined) {
+            _super.prototype.reset.call(this);
+        }
+        else {
+            _super.prototype.reset.call(this, resetInput);
+        }
+        this.overrideDecisionReached = false;
+        this._overrideDecisionRoot = undefined;
+    };
+    Object.defineProperty(ParserInterpreter.prototype, "atn", {
+        get: function () {
+            return this._atn;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ParserInterpreter.prototype, "vocabulary", {
+        get: function () {
+            return this._vocabulary;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ParserInterpreter.prototype, "ruleNames", {
+        get: function () {
+            return this._ruleNames;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ParserInterpreter.prototype, "grammarFileName", {
+        get: function () {
+            return this._grammarFileName;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    /** Begin parsing at startRuleIndex */
+    ParserInterpreter.prototype.parse = function (startRuleIndex) {
+        var startRuleStartState = this._atn.ruleToStartState[startRuleIndex];
+        this._rootContext = this.createInterpreterRuleContext(undefined, ATNState.INVALID_STATE_NUMBER, startRuleIndex);
+        if (startRuleStartState.isPrecedenceRule) {
+            this.enterRecursionRule(this._rootContext, startRuleStartState.stateNumber, startRuleIndex, 0);
+        }
+        else {
+            this.enterRule(this._rootContext, startRuleStartState.stateNumber, startRuleIndex);
+        }
+        while (true) {
+            var p = this.atnState;
+            switch (p.stateType) {
+                case ATNStateType.RULE_STOP:
+                    // pop; return from rule
+                    if (this._ctx.isEmpty) {
+                        if (startRuleStartState.isPrecedenceRule) {
+                            var result = this._ctx;
+                            var parentContext = this._parentContextStack.pop();
+                            this.unrollRecursionContexts(parentContext[0]);
+                            return result;
+                        }
+                        else {
+                            this.exitRule();
+                            return this._rootContext;
+                        }
+                    }
+                    this.visitRuleStopState(p);
+                    break;
+                default:
+                    try {
+                        this.visitState(p);
+                    }
+                    catch (e) {
+                        if (e instanceof RecognitionException) {
+                            this.state = this._atn.ruleToStopState[p.ruleIndex].stateNumber;
+                            this.context.exception = e;
+                            this.errorHandler.reportError(this, e);
+                            this.recover(e);
+                        }
+                        else {
+                            throw e;
+                        }
+                    }
+                    break;
+            }
+        }
+    };
+    ParserInterpreter.prototype.enterRecursionRule = function (localctx, state, ruleIndex, precedence) {
+        this._parentContextStack.push([this._ctx, localctx.invokingState]);
+        _super.prototype.enterRecursionRule.call(this, localctx, state, ruleIndex, precedence);
+    };
+    Object.defineProperty(ParserInterpreter.prototype, "atnState", {
+        get: function () {
+            return this._atn.states[this.state];
+        },
+        enumerable: true,
+        configurable: true
+    });
+    ParserInterpreter.prototype.visitState = function (p) {
+        var predictedAlt = 1;
+        if (p.numberOfTransitions > 1) {
+            predictedAlt = this.visitDecisionState(p);
+        }
+        var transition = p.transition(predictedAlt - 1);
+        switch (transition.serializationType) {
+            case 1 /* EPSILON */:
+                if (this.pushRecursionContextStates.get(p.stateNumber) &&
+                    !(transition.target instanceof LoopEndState)) {
+                    // We are at the start of a left recursive rule's (...)* loop
+                    // and we're not taking the exit branch of loop.
+                    var parentContext = this._parentContextStack[this._parentContextStack.length - 1];
+                    var localctx = this.createInterpreterRuleContext(parentContext[0], parentContext[1], this._ctx.ruleIndex);
+                    this.pushNewRecursionContext(localctx, this._atn.ruleToStartState[p.ruleIndex].stateNumber, this._ctx.ruleIndex);
+                }
+                break;
+            case 5 /* ATOM */:
+                this.match(transition._label);
+                break;
+            case 2 /* RANGE */:
+            case 7 /* SET */:
+            case 8 /* NOT_SET */:
+                if (!transition.matches(this._input.LA(1), Token.MIN_USER_TOKEN_TYPE, 65535)) {
+                    this.recoverInline();
+                }
+                this.matchWildcard();
+                break;
+            case 9 /* WILDCARD */:
+                this.matchWildcard();
+                break;
+            case 3 /* RULE */:
+                var ruleStartState = transition.target;
+                var ruleIndex = ruleStartState.ruleIndex;
+                var newctx = this.createInterpreterRuleContext(this._ctx, p.stateNumber, ruleIndex);
+                if (ruleStartState.isPrecedenceRule) {
+                    this.enterRecursionRule(newctx, ruleStartState.stateNumber, ruleIndex, transition.precedence);
+                }
+                else {
+                    this.enterRule(newctx, transition.target.stateNumber, ruleIndex);
+                }
+                break;
+            case 4 /* PREDICATE */:
+                var predicateTransition = transition;
+                if (!this.sempred(this._ctx, predicateTransition.ruleIndex, predicateTransition.predIndex)) {
+                    throw new FailedPredicateException(this);
+                }
+                break;
+            case 6 /* ACTION */:
+                var actionTransition = transition;
+                this.action(this._ctx, actionTransition.ruleIndex, actionTransition.actionIndex);
+                break;
+            case 10 /* PRECEDENCE */:
+                if (!this.precpred(this._ctx, transition.precedence)) {
+                    var precedence = transition.precedence;
+                    throw new FailedPredicateException(this, "precpred(_ctx, " + precedence + ")");
+                }
+                break;
+            default:
+                throw new Error("UnsupportedOperationException: Unrecognized ATN transition type.");
+        }
+        this.state = transition.target.stateNumber;
+    };
+    /** Method visitDecisionState() is called when the interpreter reaches
+     *  a decision state (instance of DecisionState). It gives an opportunity
+     *  for subclasses to track interesting things.
+     */
+    ParserInterpreter.prototype.visitDecisionState = function (p) {
+        var predictedAlt;
+        this.errorHandler.sync(this);
+        var decision = p.decision;
+        if (decision === this.overrideDecision && this._input.index === this.overrideDecisionInputIndex && !this.overrideDecisionReached) {
+            predictedAlt = this.overrideDecisionAlt;
+            this.overrideDecisionReached = true;
+        }
+        else {
+            predictedAlt = this.interpreter.adaptivePredict(this._input, decision, this._ctx);
+        }
+        return predictedAlt;
+    };
+    /** Provide simple "factory" for InterpreterRuleContext's.
+     *  @since 4.5.1
+     */
+    ParserInterpreter.prototype.createInterpreterRuleContext = function (parent, invokingStateNumber, ruleIndex) {
+        return new InterpreterRuleContext(ruleIndex, parent, invokingStateNumber);
+    };
+    ParserInterpreter.prototype.visitRuleStopState = function (p) {
+        var ruleStartState = this._atn.ruleToStartState[p.ruleIndex];
+        if (ruleStartState.isPrecedenceRule) {
+            var parentContext = this._parentContextStack.pop();
+            this.unrollRecursionContexts(parentContext[0]);
+            this.state = parentContext[1];
+        }
+        else {
+            this.exitRule();
+        }
+        var ruleTransition = this._atn.states[this.state].transition(0);
+        this.state = ruleTransition.followState.stateNumber;
+    };
+    /** Override this parser interpreters normal decision-making process
+     *  at a particular decision and input token index. Instead of
+     *  allowing the adaptive prediction mechanism to choose the
+     *  first alternative within a block that leads to a successful parse,
+     *  force it to take the alternative, 1..n for n alternatives.
+     *
+     *  As an implementation limitation right now, you can only specify one
+     *  override. This is sufficient to allow construction of different
+     *  parse trees for ambiguous input. It means re-parsing the entire input
+     *  in general because you're never sure where an ambiguous sequence would
+     *  live in the various parse trees. For example, in one interpretation,
+     *  an ambiguous input sequence would be matched completely in expression
+     *  but in another it could match all the way back to the root.
+     *
+     *  s : e '!'? ;
+     *  e : ID
+     *    | ID '!'
+     *    ;
+     *
+     *  Here, x! can be matched as (s (e ID) !) or (s (e ID !)). In the first
+     *  case, the ambiguous sequence is fully contained only by the root.
+     *  In the second case, the ambiguous sequences fully contained within just
+     *  e, as in: (e ID !).
+     *
+     *  Rather than trying to optimize this and make
+     *  some intelligent decisions for optimization purposes, I settled on
+     *  just re-parsing the whole input and then using
+     *  {link Trees#getRootOfSubtreeEnclosingRegion} to find the minimal
+     *  subtree that contains the ambiguous sequence. I originally tried to
+     *  record the call stack at the point the parser detected and ambiguity but
+     *  left recursive rules create a parse tree stack that does not reflect
+     *  the actual call stack. That impedance mismatch was enough to make
+     *  it it challenging to restart the parser at a deeply nested rule
+     *  invocation.
+     *
+     *  Only parser interpreters can override decisions so as to avoid inserting
+     *  override checking code in the critical ALL(*) prediction execution path.
+     *
+     *  @since 4.5
+     */
+    ParserInterpreter.prototype.addDecisionOverride = function (decision, tokenIndex, forcedAlt) {
+        this.overrideDecision = decision;
+        this.overrideDecisionInputIndex = tokenIndex;
+        this.overrideDecisionAlt = forcedAlt;
+    };
+    Object.defineProperty(ParserInterpreter.prototype, "overrideDecisionRoot", {
+        get: function () {
+            return this._overrideDecisionRoot;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    /** Rely on the error handler for this parser but, if no tokens are consumed
+     *  to recover, add an error node. Otherwise, nothing is seen in the parse
+     *  tree.
+     */
+    ParserInterpreter.prototype.recover = function (e) {
+        var i = this._input.index;
+        this.errorHandler.recover(this, e);
+        if (this._input.index === i) {
+            // no input consumed, better add an error node
+            var tok = e.getOffendingToken();
+            if (!tok) {
+                throw new Error("Expected exception to have an offending token");
+            }
+            var source = tok.tokenSource;
+            var stream = source !== undefined ? source.inputStream : undefined;
+            var sourcePair = { source: source, stream: stream };
+            if (e instanceof InputMismatchException) {
+                var expectedTokens = e.expectedTokens;
+                if (expectedTokens === undefined) {
+                    throw new Error("Expected the exception to provide expected tokens");
+                }
+                var expectedTokenType = expectedTokens.minElement; // get any element
+                var errToken = this.tokenFactory.create(sourcePair, expectedTokenType, tok.text, Token.DEFAULT_CHANNEL, -1, -1, // invalid start/stop
+                tok.line, tok.charPositionInLine);
+                this._ctx.addErrorNode(errToken);
+            }
+            else { // NoViableAlt
+                var source_1 = tok.tokenSource;
+                var errToken = this.tokenFactory.create(sourcePair, Token.INVALID_TYPE, tok.text, Token.DEFAULT_CHANNEL, -1, -1, // invalid start/stop
+                tok.line, tok.charPositionInLine);
+                this._ctx.addErrorNode(errToken);
+            }
+        }
+    };
+    ParserInterpreter.prototype.recoverInline = function () {
+        return this._errHandler.recoverInline(this);
+    };
+    Object.defineProperty(ParserInterpreter.prototype, "rootContext", {
+        /** Return the root of the parse, which can be useful if the parser
+         *  bails out. You still can access the top node. Note that,
+         *  because of the way left recursive rules add children, it's possible
+         *  that the root will not have any children if the start rule immediately
+         *  called and left recursive rule that fails.
+         *
+         * @since 4.5.1
+         */
+        get: function () {
+            return this._rootContext;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    __decorate([
+        NotNull
+    ], ParserInterpreter.prototype, "_vocabulary", void 0);
+    __decorate([
+        Override
+    ], ParserInterpreter.prototype, "reset", null);
+    __decorate([
+        Override
+    ], ParserInterpreter.prototype, "atn", null);
+    __decorate([
+        Override
+    ], ParserInterpreter.prototype, "vocabulary", null);
+    __decorate([
+        Override
+    ], ParserInterpreter.prototype, "ruleNames", null);
+    __decorate([
+        Override
+    ], ParserInterpreter.prototype, "grammarFileName", null);
+    __decorate([
+        Override
+    ], ParserInterpreter.prototype, "enterRecursionRule", null);
+    ParserInterpreter = __decorate([
+        __param(1, NotNull)
+    ], ParserInterpreter);
+    return ParserInterpreter;
+}(Parser$$1));
 
 /*!
 * Copyright 2016 The ANTLR Project. All rights reserved.
@@ -23820,5 +24092,5 @@ var ReplaceOp = /** @class */ (function (_super) {
  * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
  */
 
-export { ANTLRInputStream, BailErrorStrategy, BufferedTokenStream, CommonToken, CommonTokenFactory, CommonTokenStream, ConsoleErrorListener, DefaultErrorStrategy, Dependents, DiagnosticErrorListener, FailedPredicateException, InputMismatchException, InterpreterRuleContext, IntStream, Lexer, LexerInterpreter, LexerNoViableAltException, ListTokenSource, NoViableAltException, Parser, ParserInterpreter, ParserRuleContext, ProxyErrorListener, ProxyParserErrorListener, RecognitionException, Recognizer, RuleContext, RuleContextWithAltNum, RuleDependency, RuleVersion, Token, TokenStreamRewriter, RewriteOperation, VocabularyImpl };
+export { ANTLRInputStream, BailErrorStrategy, BufferedTokenStream, CommonToken, CommonTokenFactory, CommonTokenStream, ConsoleErrorListener, DefaultErrorStrategy, Dependents, DiagnosticErrorListener, FailedPredicateException, InputMismatchException, InterpreterRuleContext, IntStream, Lexer, LexerInterpreter, LexerNoViableAltException, ListTokenSource, NoViableAltException, ParseTreePatternMatcher, ProfilingATNSimulator$$1 as ProfilingATNSimulator, Parser$$1 as Parser, ParserInterpreter, ParserRuleContext, ProxyErrorListener, ProxyParserErrorListener, RecognitionException, Recognizer, RuleContext, RuleContextWithAltNum, RuleDependency, RuleVersion, Token, TokenStreamRewriter, RewriteOperation, VocabularyImpl };
 //# sourceMappingURL=index.es.js.map
