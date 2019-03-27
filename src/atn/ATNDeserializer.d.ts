@@ -58,9 +58,10 @@ export declare class ATNDeserializer {
      * serialized ATN at or after the feature identified by `feature` was
      * introduced; otherwise, `false`.
      */
-    protected isFeatureSupported(feature: UUID, actualUuid: UUID): boolean;
+    protected static isFeatureSupported(feature: UUID, actualUuid: UUID): boolean;
+    private static getUnicodeDeserializer(mode);
     deserialize(data: Uint16Array): ATN;
-    private readSets(data, p, sets, read32);
+    private deserializeSets(data, p, sets, unicodeDeserializer);
     /**
      * Analyze the {@link StarLoopEntryState} states in the specified ATN to set
      * the {@link StarLoopEntryState#precedenceRuleDecision} field to the

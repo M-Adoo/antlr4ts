@@ -66,6 +66,11 @@ import { Token } from "../Token";
 import { TokensStartState } from "./TokensStartState";
 import { UUID } from "../misc/UUID";
 import { WildcardTransition } from "./WildcardTransition";
+var UnicodeDeserializingMode;
+(function (UnicodeDeserializingMode) {
+    UnicodeDeserializingMode[UnicodeDeserializingMode["UNICODE_BMP"] = 0] = "UNICODE_BMP";
+    UnicodeDeserializingMode[UnicodeDeserializingMode["UNICODE_SMP"] = 1] = "UNICODE_SMP";
+})(UnicodeDeserializingMode || (UnicodeDeserializingMode = {}));
 /**
  *
  * @author Sam Harwell
@@ -100,12 +105,30 @@ var ATNDeserializer = /** @class */ (function () {
      * serialized ATN at or after the feature identified by `feature` was
      * introduced; otherwise, `false`.
      */
-    ATNDeserializer.prototype.isFeatureSupported = function (feature, actualUuid) {
+    ATNDeserializer.isFeatureSupported = function (feature, actualUuid) {
         var featureIndex = ATNDeserializer.SUPPORTED_UUIDS.findIndex(function (e) { return e.equals(feature); });
         if (featureIndex < 0) {
             return false;
         }
         return ATNDeserializer.SUPPORTED_UUIDS.findIndex(function (e) { return e.equals(actualUuid); }) >= featureIndex;
+    };
+    ATNDeserializer.getUnicodeDeserializer = function (mode) {
+        if (mode === 0 /* UNICODE_BMP */) {
+            return {
+                readUnicode: function (data, p) {
+                    return ATNDeserializer.toInt(data[p]);
+                },
+                size: 1,
+            };
+        }
+        else {
+            return {
+                readUnicode: function (data, p) {
+                    return ATNDeserializer.toInt32(data, p);
+                },
+                size: 2,
+            };
+        }
     };
     ATNDeserializer.prototype.deserialize = function (data) {
         data = data.slice(0);
@@ -133,7 +156,7 @@ var ATNDeserializer = /** @class */ (function () {
             var reason = "Could not deserialize ATN with UUID " + uuid + " (expected " + ATNDeserializer.SERIALIZED_UUID + " or a legacy UUID).";
             throw new Error(reason);
         }
-        var supportsLexerActions = this.isFeatureSupported(ATNDeserializer.ADDED_LEXER_ACTIONS, uuid);
+        var supportsLexerActions = ATNDeserializer.isFeatureSupported(ATNDeserializer.ADDED_LEXER_ACTIONS, uuid);
         var grammarType = ATNDeserializer.toInt(data[p++]);
         var maxTokenType = ATNDeserializer.toInt(data[p++]);
         var atn = new ATN(grammarType, maxTokenType);
@@ -226,7 +249,7 @@ var ATNDeserializer = /** @class */ (function () {
                     tokenType = Token.EOF;
                 }
                 atn.ruleToTokenType[i] = tokenType;
-                if (!this.isFeatureSupported(ATNDeserializer.ADDED_LEXER_ACTIONS, uuid)) {
+                if (!ATNDeserializer.isFeatureSupported(ATNDeserializer.ADDED_LEXER_ACTIONS, uuid)) {
                     // this piece of unused metadata was serialized prior to the
                     // addition of LexerAction
                     var actionIndexIgnored = ATNDeserializer.toInt(data[p++]);
@@ -270,11 +293,12 @@ var ATNDeserializer = /** @class */ (function () {
         // SETS
         //
         var sets = [];
-        p = this.readSets(data, p, sets, false);
+        // First, read all sets with 16-bit Unicode code points <= U+FFFF.
+        p = this.deserializeSets(data, p, sets, ATNDeserializer.getUnicodeDeserializer(0 /* UNICODE_BMP */));
         // Next, if the ATN was serialized with the Unicode SMP feature,
         // deserialize sets with 32-bit arguments <= U+10FFFF.
-        if (this.isFeatureSupported(ATNDeserializer.ADDED_UNICODE_SMP, uuid)) {
-            p = this.readSets(data, p, sets, true);
+        if (ATNDeserializer.isFeatureSupported(ATNDeserializer.ADDED_UNICODE_SMP, uuid)) {
+            p = this.deserializeSets(data, p, sets, ATNDeserializer.getUnicodeDeserializer(1 /* UNICODE_SMP */));
         }
         //
         // EDGES
@@ -575,7 +599,7 @@ var ATNDeserializer = /** @class */ (function () {
         return atn;
         var e_1, _a, e_2, _b, e_3, _e, e_4, _h, e_5, _j, e_6, _m, e_7, _q, e_8, _t, e_9, _w;
     };
-    ATNDeserializer.prototype.readSets = function (data, p, sets, read32) {
+    ATNDeserializer.prototype.deserializeSets = function (data, p, sets, unicodeDeserializer) {
         var nsets = ATNDeserializer.toInt(data[p++]);
         for (var i = 0; i < nsets; i++) {
             var nintervals = ATNDeserializer.toInt(data[p]);
@@ -586,17 +610,12 @@ var ATNDeserializer = /** @class */ (function () {
             if (containsEof) {
                 set.add(-1);
             }
-            if (read32) {
-                for (var j = 0; j < nintervals; j++) {
-                    set.add(ATNDeserializer.toInt32(data, p), ATNDeserializer.toInt32(data, p + 2));
-                    p += 4;
-                }
-            }
-            else {
-                for (var j = 0; j < nintervals; j++) {
-                    set.add(ATNDeserializer.toInt(data[p]), ATNDeserializer.toInt(data[p + 1]));
-                    p += 2;
-                }
+            for (var j = 0; j < nintervals; j++) {
+                var a = unicodeDeserializer.readUnicode(data, p);
+                p += unicodeDeserializer.size;
+                var b = unicodeDeserializer.readUnicode(data, p);
+                p += unicodeDeserializer.size;
+                set.add(a, b);
             }
         }
         return p;
@@ -1263,7 +1282,7 @@ var ATNDeserializer = /** @class */ (function () {
      * IntervalSets, where the second set's values are encoded as
      * 32-bit integers to support the full Unicode SMP range up to U+10FFFF.
      */
-    ATNDeserializer.ADDED_UNICODE_SMP = UUID.fromString("59627784-3BE5-417A-B9EB-8131A7286089");
+    ATNDeserializer.ADDED_UNICODE_SMP = UUID.fromString("C23FEA89-0605-4f51-AFB8-058BCAB8C91B");
     /**
      * This list contains all of the currently supported UUIDs, ordered by when
      * the feature first appeared in this branch.

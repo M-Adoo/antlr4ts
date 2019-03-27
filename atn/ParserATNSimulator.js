@@ -31,12 +31,11 @@ var __values = (this && this.__values) || function (o) {
         }
     };
 };
-// ConvertTo-TS run at 2016-10-04T11:26:31.1989835-07:00
 import { AcceptStateInfo } from "../dfa/AcceptStateInfo";
 import { ActionTransition } from "./ActionTransition";
 import { Array2DHashSet } from "../misc/Array2DHashSet";
 import { Arrays } from "../misc/Arrays";
-import { ATN } from "./ATN";
+import { INVALID_ALT_NUMBER } from "./Constant";
 import { ATNConfig } from "./ATNConfig";
 import { ATNConfigSet } from "./ATNConfigSet";
 import { ATNSimulator } from "./ATNSimulator";
@@ -55,7 +54,7 @@ import { NoViableAltException } from "../NoViableAltException";
 import { ObjectEqualityComparator } from "../misc/ObjectEqualityComparator";
 import { ParserRuleContext } from "../ParserRuleContext";
 import { PredictionContext } from "./PredictionContext";
-import { PredictionContextCache } from "./PredictionContextCache";
+import { PredictionContextCache } from "./PredictionContext";
 import { PredictionMode } from "./PredictionMode";
 import { RuleStopState } from "./RuleStopState";
 import { RuleTransition } from "./RuleTransition";
@@ -64,7 +63,7 @@ import { SetTransition } from "./SetTransition";
 import { SimulatorState } from "./SimulatorState";
 import { Token } from "../Token";
 import { VocabularyImpl } from "../VocabularyImpl";
-// import * as assert from "assert";
+import assert from "assert";
 var MAX_SHORT_VALUE = 0xFFFF;
 var MIN_INTEGER_VALUE = -((1 << 31) >>> 0);
 /**
@@ -326,7 +325,7 @@ var ParserATNSimulator = /** @class */ (function (_super) {
             useContext = false;
         }
         var dfa = this.atn.decisionToDFA[decision];
-        // assert(dfa != null);
+        assert(dfa != null);
         if (this.optimize_ll1 && !dfa.isPrecedenceDfa && !dfa.isEmpty) {
             var ll_1 = input.LA(1);
             if (ll_1 >= 0 && ll_1 <= 0xFFFF) {
@@ -400,7 +399,7 @@ var ParserATNSimulator = /** @class */ (function (_super) {
             return undefined;
         }
         var remainingContext = outerContext;
-        // assert(outerContext != null);
+        assert(outerContext != null);
         var s0;
         if (dfa.isPrecedenceDfa) {
             s0 = dfa.getPrecedenceStartState(this._parser.precedence, true);
@@ -412,7 +411,7 @@ var ParserATNSimulator = /** @class */ (function (_super) {
             remainingContext = this.skipTailCalls(remainingContext);
             s0 = s0.getContextTarget(this.getReturnState(remainingContext));
             if (remainingContext.isEmpty) {
-                // assert(s0 == null || !s0.isContextSensitive);
+                assert(s0 == null || !s0.isContextSensitive);
             }
             else {
                 remainingContext = remainingContext.parent;
@@ -452,7 +451,7 @@ var ParserATNSimulator = /** @class */ (function (_super) {
                         var initialState = new SimulatorState(state.outerContext, s, state.useContext, remainingOuterContext);
                         return this.execATN(dfa, input, startIndex, initialState);
                     }
-                    // assert(remainingOuterContext != null);
+                    assert(remainingOuterContext != null);
                     remainingOuterContext = remainingOuterContext.parent;
                     s = next;
                 }
@@ -475,7 +474,7 @@ var ParserATNSimulator = /** @class */ (function (_super) {
                 break;
             }
             // t is not updated if one of these states is reached
-            // assert(!this.isAcceptState(s, state.useContext));
+            assert(!this.isAcceptState(s, state.useContext));
             // if no edge, pop over to ATN interpreter, update DFA and return
             var target = this.getExistingTargetState(s, t);
             if (target == null) {
@@ -527,7 +526,7 @@ var ParserATNSimulator = /** @class */ (function (_super) {
                     //}
                 }
                 else {
-                    // assert(!state.useContext);
+                    assert(!state.useContext);
                     // Before attempting full context prediction, check to see if there are
                     // disambiguating or validating predicates to evaluate which allow an
                     // immediate decision
@@ -683,13 +682,13 @@ var ParserATNSimulator = /** @class */ (function (_super) {
             }
             var D = nextState.s0;
             // predicted alt => accept state
-            // assert(D.isAcceptState || D.prediction === ATN.INVALID_ALT_NUMBER);
+            assert(D.isAcceptState || D.prediction === INVALID_ALT_NUMBER);
             // conflicted => accept state
-            // assert(D.isAcceptState || D.configs.conflictInfo == null);
+            assert(D.isAcceptState || D.configs.conflictInfo == null);
             if (this.isAcceptState(D, useContext)) {
                 var conflictingAlts = D.configs.conflictingAlts;
-                var predictedAlt = conflictingAlts == null ? D.prediction : ATN.INVALID_ALT_NUMBER;
-                if (predictedAlt !== ATN.INVALID_ALT_NUMBER) {
+                var predictedAlt = conflictingAlts == null ? D.prediction : INVALID_ALT_NUMBER;
+                if (predictedAlt !== INVALID_ALT_NUMBER) {
                     if (this.optimize_ll1
                         && input.index === startIndex
                         && !dfa.isPrecedenceDfa
@@ -750,8 +749,8 @@ var ParserATNSimulator = /** @class */ (function (_super) {
                     return predictedAlt;
                 }
                 else {
-                    // assert(!useContext);
-                    // assert(this.isAcceptState(D, false));
+                    assert(!useContext);
+                    assert(this.isAcceptState(D, false));
                     if (ParserATNSimulator.debug) {
                         console.log("RETRY with outerContext=" + outerContext);
                     }
@@ -917,12 +916,12 @@ var ParserATNSimulator = /** @class */ (function (_super) {
                 if (next == null) {
                     break;
                 }
-                // assert(remainingGlobalContext != null);
+                assert(remainingGlobalContext != null);
                 remainingGlobalContext = remainingGlobalContext.parent;
                 s = next;
             }
         }
-        // assert(!this.isAcceptState(s, useContext));
+        assert(!this.isAcceptState(s, useContext));
         if (this.isAcceptState(s, useContext)) {
             return new SimulatorState(previous.outerContext, s, useContext, remainingGlobalContext);
         }
@@ -936,7 +935,7 @@ var ParserATNSimulator = /** @class */ (function (_super) {
         if (target === ATNSimulator.ERROR) {
             return undefined;
         }
-        // assert(!useContext || !target.configs.dipsIntoOuterContext);
+        assert(!useContext || !target.configs.dipsIntoOuterContext);
         return new SimulatorState(previous.outerContext, target, useContext, remainingGlobalContext);
     };
     /**
@@ -997,7 +996,7 @@ var ParserATNSimulator = /** @class */ (function (_super) {
                         console.log("testing " + this.getTokenName(t) + " at " + c.toString());
                     }
                     if (c.state instanceof RuleStopState) {
-                        // assert(c.context.isEmpty);
+                        assert(c.context.isEmpty);
                         if (useContext && !c.reachesIntoOuterContext || t === IntStream.EOF) {
                             if (skippedStopStates == null) {
                                 skippedStopStates = [];
@@ -1032,7 +1031,7 @@ var ParserATNSimulator = /** @class */ (function (_super) {
              * condition is not true when one or more configurations have been
              * withheld in skippedStopStates, or when the current symbol is EOF.
              */
-            if (this.optimize_unique_closure && skippedStopStates == null && t !== Token.EOF && reachIntermediate.uniqueAlt !== ATN.INVALID_ALT_NUMBER) {
+            if (this.optimize_unique_closure && skippedStopStates == null && t !== Token.EOF && reachIntermediate.uniqueAlt !== INVALID_ALT_NUMBER) {
                 reachIntermediate.isOutermostConfigSet = reach.isOutermostConfigSet;
                 reach = reachIntermediate;
                 break;
@@ -1068,8 +1067,8 @@ var ParserATNSimulator = /** @class */ (function (_super) {
              * multiple alternatives are viable.
              */
             if (skippedStopStates != null && (!useContext || !PredictionMode.hasConfigInRuleStopState(reach))) {
+                assert(skippedStopStates.length > 0);
                 try {
-                    // assert(skippedStopStates.length > 0);
                     for (var skippedStopStates_1 = __values(skippedStopStates), skippedStopStates_1_1 = skippedStopStates_1.next(); !skippedStopStates_1_1.done; skippedStopStates_1_1 = skippedStopStates_1.next()) {
                         var c = skippedStopStates_1_1.value;
                         reach.add(c, contextCache);
@@ -1486,7 +1485,7 @@ var ParserATNSimulator = /** @class */ (function (_super) {
         for (var i = 1; i < altToPred.length; i++) {
             var pred = altToPred[i];
             // unpredicated is indicated by SemanticContext.NONE
-            // assert(pred != null);
+            assert(pred != null);
             // find first unpredicated but ambig alternative, if any.
             // Only ambiguous alternatives will have SemanticContext.NONE.
             // Any unambig alts or ambig naked alts after first ambig naked are ignored
@@ -1623,7 +1622,7 @@ var ParserATNSimulator = /** @class */ (function (_super) {
                     // Make sure we track that we are now out of context.
                     c.outerContextDepth = config.outerContextDepth;
                     c.isPrecedenceFilterSuppressed = config.isPrecedenceFilterSuppressed;
-                    // assert(depth > MIN_INTEGER_VALUE);
+                    assert(depth > MIN_INTEGER_VALUE);
                     this.closureImpl(c, configs, intermediate, closureBusy, collectPredicates, hasMoreContexts, contextCache, depth - 1, treatEofAsEpsilon);
                 }
                 if (!hasEmpty || !hasMoreContexts) {
@@ -1695,10 +1694,6 @@ var ParserATNSimulator = /** @class */ (function (_super) {
                         continue;
                     }
                 }
-                if (!t.isEpsilon && !closureBusy.add(c)) {
-                    // avoid infinite recursion for EOF* and EOF+
-                    continue;
-                }
                 var newDepth = depth;
                 if (config.state instanceof RuleStopState) {
                     // target fell off end of rule; mark resulting c as having dipped into outer context
@@ -1706,10 +1701,6 @@ var ParserATNSimulator = /** @class */ (function (_super) {
                     // track how far we dip into outer context.  Might
                     // come in handy and we avoid evaluating context dependent
                     // preds if this is > 0.
-                    if (!closureBusy.add(c)) {
-                        // avoid infinite recursion for right-recursive rules
-                        continue;
-                    }
                     if (this.dfa != null && this.dfa.isPrecedenceDfa) {
                         var outermostPrecedenceReturn = t.outermostPrecedenceReturn;
                         if (outermostPrecedenceReturn === this.dfa.atnStartState.ruleIndex) {
@@ -1717,7 +1708,11 @@ var ParserATNSimulator = /** @class */ (function (_super) {
                         }
                     }
                     c.outerContextDepth = c.outerContextDepth + 1;
-                    // assert(newDepth > MIN_INTEGER_VALUE);
+                    if (!closureBusy.add(c)) {
+                        // avoid infinite recursion for right-recursive rules
+                        continue;
+                    }
+                    assert(newDepth > MIN_INTEGER_VALUE);
                     newDepth--;
                     if (ParserATNSimulator.debug) {
                         console.log("dips into outer ctx: " + c);
@@ -1725,7 +1720,7 @@ var ParserATNSimulator = /** @class */ (function (_super) {
                 }
                 else if (t instanceof RuleTransition) {
                     if (this.optimize_tail_calls && t.optimizedTailCall && (!this.tail_call_preserves_sll || !PredictionContext.isEmptyLocal(config.context))) {
-                        // assert(c.context === config.context);
+                        assert(c.context === config.context);
                         if (newDepth === 0) {
                             // the pop/push of a tail call would keep the depth
                             // constant, except we latch if it goes negative
@@ -1741,6 +1736,12 @@ var ParserATNSimulator = /** @class */ (function (_super) {
                         if (newDepth >= 0) {
                             newDepth++;
                         }
+                    }
+                }
+                else {
+                    if (!t.isEpsilon && !closureBusy.add(c)) {
+                        // avoid infinite recursion for EOF* and EOF+
+                        continue;
                     }
                 }
                 this.closureImpl(c, configs, intermediate, closureBusy, continueCollecting, hasMoreContexts, contextCache, newDepth, treatEofAsEpsilon);
@@ -1852,7 +1853,7 @@ var ParserATNSimulator = /** @class */ (function (_super) {
         return config.transform(t.target, false, newContext);
     };
     ParserATNSimulator.prototype.isConflicted = function (configset, contextCache) {
-        if (configset.uniqueAlt !== ATN.INVALID_ALT_NUMBER || configset.size <= 1) {
+        if (configset.uniqueAlt !== INVALID_ALT_NUMBER || configset.size <= 1) {
             return undefined;
         }
         var configs = configset.toArray();
@@ -2014,7 +2015,7 @@ var ParserATNSimulator = /** @class */ (function (_super) {
     };
     ParserATNSimulator.prototype.getConflictingAltsFromConfigSet = function (configs) {
         var conflictingAlts = configs.conflictingAlts;
-        if (conflictingAlts == null && configs.uniqueAlt !== ATN.INVALID_ALT_NUMBER) {
+        if (conflictingAlts == null && configs.uniqueAlt !== INVALID_ALT_NUMBER) {
             conflictingAlts = new BitSet();
             conflictingAlts.set(configs.uniqueAlt);
         }
@@ -2070,15 +2071,15 @@ var ParserATNSimulator = /** @class */ (function (_super) {
         return new NoViableAltException(this._parser, input, input.get(startIndex), input.LT(1), configs, outerContext);
     };
     ParserATNSimulator.prototype.getUniqueAlt = function (configs) {
-        var alt = ATN.INVALID_ALT_NUMBER;
+        var alt = INVALID_ALT_NUMBER;
         try {
             for (var configs_8 = __values(configs), configs_8_1 = configs_8.next(); !configs_8_1.done; configs_8_1 = configs_8.next()) {
                 var c = configs_8_1.value;
-                if (alt === ATN.INVALID_ALT_NUMBER) {
+                if (alt === INVALID_ALT_NUMBER) {
                     alt = c.alt; // found first alt
                 }
                 else if (c.alt !== alt) {
-                    return ATN.INVALID_ALT_NUMBER;
+                    return INVALID_ALT_NUMBER;
                 }
             }
         }
@@ -2114,7 +2115,7 @@ var ParserATNSimulator = /** @class */ (function (_super) {
         var e_16, _a;
     };
     ParserATNSimulator.prototype.addDFAEdge = function (dfa, fromState, t, contextTransitions, toConfigs, contextCache) {
-        // assert(contextTransitions == null || contextTransitions.isEmpty || dfa.isContextSensitive);
+        assert(contextTransitions == null || contextTransitions.isEmpty || dfa.isContextSensitive);
         var from = fromState;
         var to = this.addDFAState(dfa, toConfigs, contextCache);
         if (contextTransitions != null) {
@@ -2134,7 +2135,7 @@ var ParserATNSimulator = /** @class */ (function (_super) {
                         continue;
                     }
                     next = this.addDFAContextState(dfa, from.configs, context_2, contextCache);
-                    // assert(context !== PredictionContext.EMPTY_FULL_STATE_KEY || next.configs.isOutermostConfigSet);
+                    assert(context_2 !== PredictionContext.EMPTY_FULL_STATE_KEY || next.configs.isOutermostConfigSet);
                     from.setContextTarget(context_2, next);
                     from = next;
                 }
@@ -2182,7 +2183,7 @@ var ParserATNSimulator = /** @class */ (function (_super) {
             return this.addDFAState(dfa, contextConfigs, contextCache);
         }
         else {
-            // assert(!configs.isOutermostConfigSet, "Shouldn't be adding a duplicate edge.");
+            assert(!configs.isOutermostConfigSet, "Shouldn't be adding a duplicate edge.");
             configs = configs.clone(true);
             configs.isOutermostConfigSet = true;
             return this.addDFAState(dfa, configs, contextCache);
@@ -2211,7 +2212,7 @@ var ParserATNSimulator = /** @class */ (function (_super) {
         // getDecisionState won't return undefined when we request a known valid decision
         var decisionState = this.atn.getDecisionState(dfa.decision);
         var predictedAlt = this.getUniqueAlt(configs);
-        if (predictedAlt !== ATN.INVALID_ALT_NUMBER) {
+        if (predictedAlt !== INVALID_ALT_NUMBER) {
             newState.acceptStateInfo = new AcceptStateInfo(predictedAlt);
         }
         else if (configs.conflictingAlts != null) {
@@ -2291,7 +2292,7 @@ var ParserATNSimulator = /** @class */ (function (_super) {
         }
         while (!context.isEmpty) {
             var state = this.atn.states[context.invokingState];
-            // assert(state.numberOfTransitions === 1 && state.transition(0).serializationType === TransitionType.RULE);
+            assert(state.numberOfTransitions === 1 && state.transition(0).serializationType === 3 /* RULE */);
             var transition = state.transition(0);
             if (!transition.tailCall) {
                 break;

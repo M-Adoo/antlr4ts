@@ -33,6 +33,9 @@ var TerminalNode = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
+    TerminalNode.prototype.setParent = function (parent) {
+        this._parent = parent;
+    };
     Object.defineProperty(TerminalNode.prototype, "payload", {
         get: function () {
             return this._symbol;
@@ -80,6 +83,9 @@ var TerminalNode = /** @class */ (function () {
     __decorate([
         Override
     ], TerminalNode.prototype, "parent", null);
+    __decorate([
+        Override
+    ], TerminalNode.prototype, "setParent", null);
     __decorate([
         Override
     ], TerminalNode.prototype, "payload", null);

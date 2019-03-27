@@ -1,0 +1,34 @@
+import { ATN } from "../../src/atn/ATN";
+import { CharStream } from "../../src/CharStream";
+import { Lexer } from "../../src/Lexer";
+import { Vocabulary } from "../../src/Vocabulary";
+export declare class GraphemesLexer extends Lexer {
+    static readonly Extend: number;
+    static readonly ZWJ: number;
+    static readonly SpacingMark: number;
+    static readonly EmojiCoreSequence: number;
+    static readonly EmojiZWJSequence: number;
+    static readonly Prepend: number;
+    static readonly NonControl: number;
+    static readonly CRLF: number;
+    static readonly HangulSyllable: number;
+    static readonly channelNames: string[];
+    static readonly modeNames: string[];
+    static readonly ruleNames: string[];
+    private static readonly _LITERAL_NAMES;
+    private static readonly _SYMBOLIC_NAMES;
+    static readonly VOCABULARY: Vocabulary;
+    readonly vocabulary: Vocabulary;
+    constructor(input: CharStream);
+    readonly grammarFileName: string;
+    readonly ruleNames: string[];
+    readonly serializedATN: string;
+    readonly channelNames: string[];
+    readonly modeNames: string[];
+    private static readonly _serializedATNSegments;
+    private static readonly _serializedATNSegment0;
+    private static readonly _serializedATNSegment1;
+    static readonly _serializedATN: string;
+    static __ATN: ATN;
+    static readonly _ATN: ATN;
+}

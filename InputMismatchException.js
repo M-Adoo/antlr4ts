@@ -29,10 +29,16 @@ import { NotNull } from "./Decorators";
  */
 var InputMismatchException = /** @class */ (function (_super) {
     __extends(InputMismatchException, _super);
-    //private static serialVersionUID: number =  1532568338707443067L;
-    function InputMismatchException(recognizer) {
-        var _this = _super.call(this, recognizer, recognizer.inputStream, recognizer.context) || this;
-        _super.prototype.setOffendingToken.call(_this, recognizer, recognizer.currentToken);
+    function InputMismatchException(recognizer, state, context) {
+        var _this = this;
+        if (context === undefined) {
+            context = recognizer.context;
+        }
+        _this = _super.call(this, recognizer, recognizer.inputStream, context) || this;
+        if (state !== undefined) {
+            _this.setOffendingState(state);
+        }
+        _this.setOffendingToken(recognizer, recognizer.currentToken);
         return _this;
     }
     InputMismatchException = __decorate([

@@ -108,6 +108,7 @@ export declare class JavaLexer extends Lexer {
     static readonly WS: number;
     static readonly COMMENT: number;
     static readonly LINE_COMMENT: number;
+    static readonly channelNames: string[];
     static readonly modeNames: string[];
     static readonly ruleNames: string[];
     private static readonly _LITERAL_NAMES;
@@ -118,6 +119,7 @@ export declare class JavaLexer extends Lexer {
     readonly grammarFileName: string;
     readonly ruleNames: string[];
     readonly serializedATN: string;
+    readonly channelNames: string[];
     readonly modeNames: string[];
     private static readonly _serializedATNSegments;
     private static readonly _serializedATNSegment0;

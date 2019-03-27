@@ -83,13 +83,6 @@ export declare class StatContext extends ParserRuleContext {
     readonly ruleIndex: number;
     copyFrom(ctx: StatContext): void;
 }
-export declare class RetContext extends StatContext {
-    expr(): ExprContext;
-    constructor(ctx: StatContext);
-}
-export declare class BlankContext extends StatContext {
-    constructor(ctx: StatContext);
-}
 export declare class PrintExprContext extends StatContext {
     expr(): ExprContext;
     constructor(ctx: StatContext);
@@ -99,23 +92,35 @@ export declare class AssignContext extends StatContext {
     expr(): ExprContext;
     constructor(ctx: StatContext);
 }
+export declare class RetContext extends StatContext {
+    RETURN(): TerminalNode;
+    expr(): ExprContext;
+    constructor(ctx: StatContext);
+}
+export declare class BlankContext extends StatContext {
+    constructor(ctx: StatContext);
+}
 export declare class ExprContext extends ParserRuleContext {
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
     copyFrom(ctx: ExprContext): void;
 }
-export declare class PrimContext extends ExprContext {
-    primary(): PrimaryContext;
-    constructor(ctx: ExprContext);
-}
 export declare class MulDivContext extends ExprContext {
     expr(): ExprContext[];
     expr(i: number): ExprContext;
+    MUL(): TerminalNode | undefined;
+    DIV(): TerminalNode | undefined;
     constructor(ctx: ExprContext);
 }
 export declare class AddSubContext extends ExprContext {
     expr(): ExprContext[];
     expr(i: number): ExprContext;
+    ADD(): TerminalNode | undefined;
+    SUB(): TerminalNode | undefined;
+    constructor(ctx: ExprContext);
+}
+export declare class PrimContext extends ExprContext {
+    primary(): PrimaryContext;
     constructor(ctx: ExprContext);
 }
 export declare class PrimaryContext extends ParserRuleContext {
@@ -123,15 +128,15 @@ export declare class PrimaryContext extends ParserRuleContext {
     readonly ruleIndex: number;
     copyFrom(ctx: PrimaryContext): void;
 }
-export declare class ParensContext extends PrimaryContext {
-    expr(): ExprContext;
+export declare class IntContext extends PrimaryContext {
+    INT(): TerminalNode;
     constructor(ctx: PrimaryContext);
 }
 export declare class IdContext extends PrimaryContext {
     ID(): TerminalNode;
     constructor(ctx: PrimaryContext);
 }
-export declare class IntContext extends PrimaryContext {
-    INT(): TerminalNode;
+export declare class ParensContext extends PrimaryContext {
+    expr(): ExprContext;
     constructor(ctx: PrimaryContext);
 }

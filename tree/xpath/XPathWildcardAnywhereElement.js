@@ -21,12 +21,12 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 // CONVERSTION complete, Burt Harris 10/14/2016
 import { Override } from "../../Decorators";
 import { Trees } from "../Trees";
-import { XPath } from "./XPath";
+import { XPATH_WILDCARD } from "./Constant";
 import { XPathElement } from "./XPathElement";
 var XPathWildcardAnywhereElement = /** @class */ (function (_super) {
     __extends(XPathWildcardAnywhereElement, _super);
     function XPathWildcardAnywhereElement() {
-        return _super.call(this, XPath.WILDCARD) || this;
+        return _super.call(this, XPATH_WILDCARD) || this;
     }
     XPathWildcardAnywhereElement.prototype.evaluate = function (t) {
         if (this.invert) {

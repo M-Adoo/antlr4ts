@@ -60,20 +60,18 @@ export declare class IntervalSet implements IntSet {
     contains(el: number): boolean;
     /** {@inheritDoc} */
     readonly isNil: boolean;
-    /** {@inheritDoc} */
-    getSingleElement(): number;
     /**
-     * Returns the maximum value contained in the set.
+     * Returns the maximum value contained in the set if not isNil.
      *
-     * @returns the maximum value contained in the set. If the set is empty, this
-     * method returns {@link Token#INVALID_TYPE}.
+     * @return the maximum value contained in the set.
+     * @throws RangeError if set is empty
      */
     readonly maxElement: number;
     /**
-     * Returns the minimum value contained in the set.
+     * Returns the minimum value contained in the set if not isNil.
      *
-     * @returns the minimum value contained in the set. If the set is empty, this
-     * method returns {@link Token#INVALID_TYPE}.
+     * @return the minimum value contained in the set.
+     * @throws RangeError if set is empty
      */
     readonly minElement: number;
     /** Return a list of Interval objects. */

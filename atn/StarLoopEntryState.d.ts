@@ -29,7 +29,7 @@ export declare class StarLoopEntryState extends DecisionState {
      *   passing through any rule invocations or stepping out of the current
      *   rule.
      *
-     * This field is not used when {@link #isPrecedenceDecision} is
+     * This field is not used when {@link #precedenceRuleDecision} is
      * `false`.
      */
     precedenceLoopbackStates: BitSet;

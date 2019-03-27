@@ -4,6 +4,7 @@
  */
 import { Parser } from "../Parser";
 import { ParseTreeVisitor } from "./ParseTreeVisitor";
+import { RuleContext } from "../RuleContext";
 import { SyntaxTree } from "./SyntaxTree";
 /** An interface to access the tree of {@link RuleContext} objects created
  *  during a parse that makes the data structure look like a simple parse tree.
@@ -14,6 +15,12 @@ import { SyntaxTree } from "./SyntaxTree";
  */
 export interface ParseTree extends SyntaxTree {
     readonly parent: ParseTree | undefined;
+    /**
+     * Set the parent for this node.
+     *
+     * @since 4.7
+     */
+    setParent(parent: RuleContext): void;
     getChild(i: number): ParseTree;
     /** The {@link ParseTreeVisitor} needs a double dispatch method. */
     accept<T>(visitor: ParseTreeVisitor<T>): T;

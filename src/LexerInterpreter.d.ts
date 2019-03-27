@@ -10,12 +10,14 @@ export declare class LexerInterpreter extends Lexer {
     protected _grammarFileName: string;
     protected _atn: ATN;
     protected _ruleNames: string[];
+    protected _channelNames: string[];
     protected _modeNames: string[];
     private _vocabulary;
-    constructor(grammarFileName: string, vocabulary: Vocabulary, modeNames: string[], ruleNames: string[], atn: ATN, input: CharStream);
+    constructor(grammarFileName: string, vocabulary: Vocabulary, ruleNames: string[], channelNames: string[], modeNames: string[], atn: ATN, input: CharStream);
     readonly atn: ATN;
     readonly grammarFileName: string;
     readonly ruleNames: string[];
+    readonly channelNames: string[];
     readonly modeNames: string[];
     readonly vocabulary: Vocabulary;
 }

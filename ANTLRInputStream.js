@@ -9,6 +9,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
+import assert from "assert";
 import { Override } from "./Decorators";
 import { IntStream } from "./IntStream";
 var READ_BUFFER_SIZE = 1024;
@@ -19,6 +20,8 @@ var INITIAL_BUFFER_SIZE = 1024;
  * `char[]` to use.
  *
  * If you need encoding, pass in stream/reader with correct encoding.
+ *
+ * @deprecated as of 4.7, please use `CharStreams` interface.
  */
 var ANTLRInputStream = /** @class */ (function () {
     /** Copy data in string to a local char array */
@@ -37,7 +40,7 @@ var ANTLRInputStream = /** @class */ (function () {
     };
     ANTLRInputStream.prototype.consume = function () {
         if (this.p >= this.n) {
-            // assert(this.LA(1) === IntStream.EOF);
+            assert(this.LA(1) === IntStream.EOF);
             throw new Error("cannot consume EOF");
         }
         //System.out.println("prev p="+p+", c="+(char)data[p]);

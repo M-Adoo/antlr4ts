@@ -12,7 +12,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 // ConvertTo-TS run at 2016-10-04T11:26:49.6074365-07:00
-// import assert = require("assert");
+import assert from "assert";
 import { CommonToken } from "./CommonToken";
 import { Interval } from "./misc/Interval";
 import { Lexer } from "./Lexer";
@@ -135,7 +135,7 @@ var BufferedTokenStream = /** @class */ (function () {
      * @see #get(int i)
      */
     BufferedTokenStream.prototype.sync = function (i) {
-        // assert(i >= 0);
+        assert(i >= 0);
         var n = i - this.tokens.length + 1; // how many more elements we need?
         //System.out.println("sync("+i+") needs "+n);
         if (n > 0) {
@@ -259,18 +259,20 @@ var BufferedTokenStream = /** @class */ (function () {
      */
     BufferedTokenStream.prototype.getTokens = function (start, stop, types) {
         this.lazyInit();
-        start = start || 0;
-        stop = stop || this.tokens.length - 1;
+        if (start === undefined) {
+            assert(stop === undefined && types === undefined);
+            return this.tokens;
+        }
+        else if (stop === undefined) {
+            stop = this.tokens.length - 1;
+        }
         if (start < 0 || stop >= this.tokens.length || stop < 0 || start >= this.tokens.length) {
             throw new RangeError("start " + start + " or stop " + stop + " not in 0.." + (this.tokens.length - 1));
-        }
-        if (start === 0 && stop === this.tokens.length - 1) {
-            return this.tokens;
         }
         if (start > stop) {
             return [];
         }
-        if (types == null) {
+        if (types === undefined) {
             return this.tokens.slice(start, stop + 1);
         }
         else if (typeof types === "number") {

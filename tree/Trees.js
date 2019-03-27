@@ -11,7 +11,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { ATN } from "../atn/ATN";
+import { INVALID_ALT_NUMBER } from "../atn/Constant";
 import { CommonToken } from "../CommonToken";
 import { ErrorNode } from "./ErrorNode";
 import { NotNull } from "../Decorators";
@@ -72,7 +72,7 @@ var Trees = /** @class */ (function () {
             var ruleIndex = ruleContext.ruleIndex;
             var ruleName = ruleNames[ruleIndex];
             var altNumber = ruleContext.altNumber;
-            if (altNumber !== ATN.INVALID_ALT_NUMBER) {
+            if (altNumber !== INVALID_ALT_NUMBER) {
                 return ruleName + ":" + altNumber;
             }
             return ruleName;

@@ -389,7 +389,9 @@ export declare class CompilationUnitContext extends ParserRuleContext {
     accept<Result>(visitor: JavaLRVisitor<Result>): Result;
 }
 export declare class PackageDeclarationContext extends ParserRuleContext {
+    PACKAGE(): TerminalNode;
     qualifiedName(): QualifiedNameContext;
+    SEMI(): TerminalNode;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
     enterRule(listener: JavaLRListener): void;
@@ -397,7 +399,12 @@ export declare class PackageDeclarationContext extends ParserRuleContext {
     accept<Result>(visitor: JavaLRVisitor<Result>): Result;
 }
 export declare class ImportDeclarationContext extends ParserRuleContext {
+    IMPORT(): TerminalNode;
     qualifiedName(): QualifiedNameContext;
+    SEMI(): TerminalNode;
+    STATIC(): TerminalNode | undefined;
+    DOT(): TerminalNode | undefined;
+    MUL(): TerminalNode | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
     enterRule(listener: JavaLRListener): void;
@@ -406,6 +413,7 @@ export declare class ImportDeclarationContext extends ParserRuleContext {
 }
 export declare class TypeDeclarationContext extends ParserRuleContext {
     classOrInterfaceDeclaration(): ClassOrInterfaceDeclarationContext | undefined;
+    SEMI(): TerminalNode | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
     enterRule(listener: JavaLRListener): void;
@@ -433,6 +441,13 @@ export declare class ClassOrInterfaceModifiersContext extends ParserRuleContext 
 }
 export declare class ClassOrInterfaceModifierContext extends ParserRuleContext {
     annotation(): AnnotationContext | undefined;
+    PUBLIC(): TerminalNode | undefined;
+    PROTECTED(): TerminalNode | undefined;
+    PRIVATE(): TerminalNode | undefined;
+    ABSTRACT(): TerminalNode | undefined;
+    STATIC(): TerminalNode | undefined;
+    FINAL(): TerminalNode | undefined;
+    STRICTFP(): TerminalNode | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
     enterRule(listener: JavaLRListener): void;
@@ -458,10 +473,13 @@ export declare class ClassDeclarationContext extends ParserRuleContext {
     accept<Result>(visitor: JavaLRVisitor<Result>): Result;
 }
 export declare class NormalClassDeclarationContext extends ParserRuleContext {
+    CLASS(): TerminalNode;
     Identifier(): TerminalNode;
     classBody(): ClassBodyContext;
     typeParameters(): TypeParametersContext | undefined;
+    EXTENDS(): TerminalNode | undefined;
     type(): TypeContext | undefined;
+    IMPLEMENTS(): TerminalNode | undefined;
     typeList(): TypeListContext | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
@@ -470,8 +488,12 @@ export declare class NormalClassDeclarationContext extends ParserRuleContext {
     accept<Result>(visitor: JavaLRVisitor<Result>): Result;
 }
 export declare class TypeParametersContext extends ParserRuleContext {
+    LT(): TerminalNode;
     typeParameter(): TypeParameterContext[];
     typeParameter(i: number): TypeParameterContext;
+    GT(): TerminalNode;
+    COMMA(): TerminalNode[];
+    COMMA(i: number): TerminalNode;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
     enterRule(listener: JavaLRListener): void;
@@ -480,6 +502,7 @@ export declare class TypeParametersContext extends ParserRuleContext {
 }
 export declare class TypeParameterContext extends ParserRuleContext {
     Identifier(): TerminalNode;
+    EXTENDS(): TerminalNode | undefined;
     typeBound(): TypeBoundContext | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
@@ -490,6 +513,8 @@ export declare class TypeParameterContext extends ParserRuleContext {
 export declare class TypeBoundContext extends ParserRuleContext {
     type(): TypeContext[];
     type(i: number): TypeContext;
+    BITAND(): TerminalNode[];
+    BITAND(i: number): TerminalNode;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
     enterRule(listener: JavaLRListener): void;
@@ -500,6 +525,7 @@ export declare class EnumDeclarationContext extends ParserRuleContext {
     ENUM(): TerminalNode;
     Identifier(): TerminalNode;
     enumBody(): EnumBodyContext;
+    IMPLEMENTS(): TerminalNode | undefined;
     typeList(): TypeListContext | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
@@ -508,7 +534,10 @@ export declare class EnumDeclarationContext extends ParserRuleContext {
     accept<Result>(visitor: JavaLRVisitor<Result>): Result;
 }
 export declare class EnumBodyContext extends ParserRuleContext {
+    LBRACE(): TerminalNode;
+    RBRACE(): TerminalNode;
     enumConstants(): EnumConstantsContext | undefined;
+    COMMA(): TerminalNode | undefined;
     enumBodyDeclarations(): EnumBodyDeclarationsContext | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
@@ -519,6 +548,8 @@ export declare class EnumBodyContext extends ParserRuleContext {
 export declare class EnumConstantsContext extends ParserRuleContext {
     enumConstant(): EnumConstantContext[];
     enumConstant(i: number): EnumConstantContext;
+    COMMA(): TerminalNode[];
+    COMMA(i: number): TerminalNode;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
     enterRule(listener: JavaLRListener): void;
@@ -537,6 +568,7 @@ export declare class EnumConstantContext extends ParserRuleContext {
     accept<Result>(visitor: JavaLRVisitor<Result>): Result;
 }
 export declare class EnumBodyDeclarationsContext extends ParserRuleContext {
+    SEMI(): TerminalNode;
     classBodyDeclaration(): ClassBodyDeclarationContext[];
     classBodyDeclaration(i: number): ClassBodyDeclarationContext;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
@@ -555,9 +587,11 @@ export declare class InterfaceDeclarationContext extends ParserRuleContext {
     accept<Result>(visitor: JavaLRVisitor<Result>): Result;
 }
 export declare class NormalInterfaceDeclarationContext extends ParserRuleContext {
+    INTERFACE(): TerminalNode;
     Identifier(): TerminalNode;
     interfaceBody(): InterfaceBodyContext;
     typeParameters(): TypeParametersContext | undefined;
+    EXTENDS(): TerminalNode | undefined;
     typeList(): TypeListContext | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
@@ -568,6 +602,8 @@ export declare class NormalInterfaceDeclarationContext extends ParserRuleContext
 export declare class TypeListContext extends ParserRuleContext {
     type(): TypeContext[];
     type(i: number): TypeContext;
+    COMMA(): TerminalNode[];
+    COMMA(i: number): TerminalNode;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
     enterRule(listener: JavaLRListener): void;
@@ -575,6 +611,8 @@ export declare class TypeListContext extends ParserRuleContext {
     accept<Result>(visitor: JavaLRVisitor<Result>): Result;
 }
 export declare class ClassBodyContext extends ParserRuleContext {
+    LBRACE(): TerminalNode;
+    RBRACE(): TerminalNode;
     classBodyDeclaration(): ClassBodyDeclarationContext[];
     classBodyDeclaration(i: number): ClassBodyDeclarationContext;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
@@ -584,6 +622,8 @@ export declare class ClassBodyContext extends ParserRuleContext {
     accept<Result>(visitor: JavaLRVisitor<Result>): Result;
 }
 export declare class InterfaceBodyContext extends ParserRuleContext {
+    LBRACE(): TerminalNode;
+    RBRACE(): TerminalNode;
     interfaceBodyDeclaration(): InterfaceBodyDeclarationContext[];
     interfaceBodyDeclaration(i: number): InterfaceBodyDeclarationContext;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
@@ -593,7 +633,9 @@ export declare class InterfaceBodyContext extends ParserRuleContext {
     accept<Result>(visitor: JavaLRVisitor<Result>): Result;
 }
 export declare class ClassBodyDeclarationContext extends ParserRuleContext {
+    SEMI(): TerminalNode | undefined;
     block(): BlockContext | undefined;
+    STATIC(): TerminalNode | undefined;
     modifiers(): ModifiersContext | undefined;
     memberDecl(): MemberDeclContext | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
@@ -605,6 +647,7 @@ export declare class ClassBodyDeclarationContext extends ParserRuleContext {
 export declare class MemberDeclContext extends ParserRuleContext {
     genericMethodOrConstructorDecl(): GenericMethodOrConstructorDeclContext | undefined;
     memberDeclaration(): MemberDeclarationContext | undefined;
+    VOID(): TerminalNode | undefined;
     Identifier(): TerminalNode | undefined;
     methodDeclaratorRest(): MethodDeclaratorRestContext | undefined;
     constructorDeclaratorRest(): ConstructorDeclaratorRestContext | undefined;
@@ -639,6 +682,7 @@ export declare class GenericMethodOrConstructorRestContext extends ParserRuleCon
     Identifier(): TerminalNode;
     methodDeclaratorRest(): MethodDeclaratorRestContext | undefined;
     type(): TypeContext | undefined;
+    VOID(): TerminalNode | undefined;
     constructorDeclaratorRest(): ConstructorDeclaratorRestContext | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
@@ -657,6 +701,7 @@ export declare class MethodDeclarationContext extends ParserRuleContext {
 }
 export declare class FieldDeclarationContext extends ParserRuleContext {
     variableDeclarators(): VariableDeclaratorsContext;
+    SEMI(): TerminalNode;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
     enterRule(listener: JavaLRListener): void;
@@ -666,6 +711,7 @@ export declare class FieldDeclarationContext extends ParserRuleContext {
 export declare class InterfaceBodyDeclarationContext extends ParserRuleContext {
     modifiers(): ModifiersContext | undefined;
     interfaceMemberDecl(): InterfaceMemberDeclContext | undefined;
+    SEMI(): TerminalNode | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
     enterRule(listener: JavaLRListener): void;
@@ -675,6 +721,7 @@ export declare class InterfaceBodyDeclarationContext extends ParserRuleContext {
 export declare class InterfaceMemberDeclContext extends ParserRuleContext {
     interfaceMethodOrFieldDecl(): InterfaceMethodOrFieldDeclContext | undefined;
     interfaceGenericMethodDecl(): InterfaceGenericMethodDeclContext | undefined;
+    VOID(): TerminalNode | undefined;
     Identifier(): TerminalNode | undefined;
     interfaceMethodDeclaratorRest(): InterfaceMethodDeclaratorRestContext | undefined;
     interfaceDeclaration(): InterfaceDeclarationContext | undefined;
@@ -697,6 +744,7 @@ export declare class InterfaceMethodOrFieldDeclContext extends ParserRuleContext
 }
 export declare class InterfaceMethodOrFieldRestContext extends ParserRuleContext {
     constantDeclaratorsRest(): ConstantDeclaratorsRestContext | undefined;
+    SEMI(): TerminalNode | undefined;
     interfaceMethodDeclaratorRest(): InterfaceMethodDeclaratorRestContext | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
@@ -707,6 +755,12 @@ export declare class InterfaceMethodOrFieldRestContext extends ParserRuleContext
 export declare class MethodDeclaratorRestContext extends ParserRuleContext {
     formalParameters(): FormalParametersContext;
     methodBody(): MethodBodyContext | undefined;
+    SEMI(): TerminalNode | undefined;
+    LBRACK(): TerminalNode[];
+    LBRACK(i: number): TerminalNode;
+    RBRACK(): TerminalNode[];
+    RBRACK(i: number): TerminalNode;
+    THROWS(): TerminalNode | undefined;
     qualifiedNameList(): QualifiedNameListContext | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
@@ -716,6 +770,12 @@ export declare class MethodDeclaratorRestContext extends ParserRuleContext {
 }
 export declare class InterfaceMethodDeclaratorRestContext extends ParserRuleContext {
     formalParameters(): FormalParametersContext;
+    SEMI(): TerminalNode;
+    LBRACK(): TerminalNode[];
+    LBRACK(i: number): TerminalNode;
+    RBRACK(): TerminalNode[];
+    RBRACK(i: number): TerminalNode;
+    THROWS(): TerminalNode | undefined;
     qualifiedNameList(): QualifiedNameListContext | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
@@ -728,6 +788,7 @@ export declare class InterfaceGenericMethodDeclContext extends ParserRuleContext
     Identifier(): TerminalNode;
     interfaceMethodDeclaratorRest(): InterfaceMethodDeclaratorRestContext;
     type(): TypeContext | undefined;
+    VOID(): TerminalNode | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
     enterRule(listener: JavaLRListener): void;
@@ -737,6 +798,7 @@ export declare class InterfaceGenericMethodDeclContext extends ParserRuleContext
 export declare class ConstructorDeclaratorRestContext extends ParserRuleContext {
     formalParameters(): FormalParametersContext;
     constructorBody(): ConstructorBodyContext;
+    THROWS(): TerminalNode | undefined;
     qualifiedNameList(): QualifiedNameListContext | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
@@ -756,6 +818,8 @@ export declare class ConstantDeclaratorContext extends ParserRuleContext {
 export declare class VariableDeclaratorsContext extends ParserRuleContext {
     variableDeclarator(): VariableDeclaratorContext[];
     variableDeclarator(i: number): VariableDeclaratorContext;
+    COMMA(): TerminalNode[];
+    COMMA(i: number): TerminalNode;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
     enterRule(listener: JavaLRListener): void;
@@ -764,6 +828,7 @@ export declare class VariableDeclaratorsContext extends ParserRuleContext {
 }
 export declare class VariableDeclaratorContext extends ParserRuleContext {
     variableDeclaratorId(): VariableDeclaratorIdContext;
+    ASSIGN(): TerminalNode | undefined;
     variableInitializer(): VariableInitializerContext | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
@@ -773,6 +838,8 @@ export declare class VariableDeclaratorContext extends ParserRuleContext {
 }
 export declare class ConstantDeclaratorsRestContext extends ParserRuleContext {
     constantDeclaratorRest(): ConstantDeclaratorRestContext;
+    COMMA(): TerminalNode[];
+    COMMA(i: number): TerminalNode;
     constantDeclarator(): ConstantDeclaratorContext[];
     constantDeclarator(i: number): ConstantDeclaratorContext;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
@@ -782,7 +849,12 @@ export declare class ConstantDeclaratorsRestContext extends ParserRuleContext {
     accept<Result>(visitor: JavaLRVisitor<Result>): Result;
 }
 export declare class ConstantDeclaratorRestContext extends ParserRuleContext {
+    ASSIGN(): TerminalNode;
     variableInitializer(): VariableInitializerContext;
+    LBRACK(): TerminalNode[];
+    LBRACK(i: number): TerminalNode;
+    RBRACK(): TerminalNode[];
+    RBRACK(i: number): TerminalNode;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
     enterRule(listener: JavaLRListener): void;
@@ -791,6 +863,10 @@ export declare class ConstantDeclaratorRestContext extends ParserRuleContext {
 }
 export declare class VariableDeclaratorIdContext extends ParserRuleContext {
     Identifier(): TerminalNode;
+    LBRACK(): TerminalNode[];
+    LBRACK(i: number): TerminalNode;
+    RBRACK(): TerminalNode[];
+    RBRACK(i: number): TerminalNode;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
     enterRule(listener: JavaLRListener): void;
@@ -807,8 +883,12 @@ export declare class VariableInitializerContext extends ParserRuleContext {
     accept<Result>(visitor: JavaLRVisitor<Result>): Result;
 }
 export declare class ArrayInitializerContext extends ParserRuleContext {
+    LBRACE(): TerminalNode;
+    RBRACE(): TerminalNode;
     variableInitializer(): VariableInitializerContext[];
     variableInitializer(i: number): VariableInitializerContext;
+    COMMA(): TerminalNode[];
+    COMMA(i: number): TerminalNode;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
     enterRule(listener: JavaLRListener): void;
@@ -817,6 +897,17 @@ export declare class ArrayInitializerContext extends ParserRuleContext {
 }
 export declare class ModifierContext extends ParserRuleContext {
     annotation(): AnnotationContext | undefined;
+    PUBLIC(): TerminalNode | undefined;
+    PROTECTED(): TerminalNode | undefined;
+    PRIVATE(): TerminalNode | undefined;
+    STATIC(): TerminalNode | undefined;
+    ABSTRACT(): TerminalNode | undefined;
+    FINAL(): TerminalNode | undefined;
+    NATIVE(): TerminalNode | undefined;
+    SYNCHRONIZED(): TerminalNode | undefined;
+    TRANSIENT(): TerminalNode | undefined;
+    VOLATILE(): TerminalNode | undefined;
+    STRICTFP(): TerminalNode | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
     enterRule(listener: JavaLRListener): void;
@@ -849,6 +940,10 @@ export declare class TypeNameContext extends ParserRuleContext {
 }
 export declare class TypeContext extends ParserRuleContext {
     classOrInterfaceType(): ClassOrInterfaceTypeContext | undefined;
+    LBRACK(): TerminalNode[];
+    LBRACK(i: number): TerminalNode;
+    RBRACK(): TerminalNode[];
+    RBRACK(i: number): TerminalNode;
     primitiveType(): PrimitiveTypeContext | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
@@ -861,6 +956,8 @@ export declare class ClassOrInterfaceTypeContext extends ParserRuleContext {
     Identifier(i: number): TerminalNode;
     typeArguments(): TypeArgumentsContext[];
     typeArguments(i: number): TypeArgumentsContext;
+    DOT(): TerminalNode[];
+    DOT(i: number): TerminalNode;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
     enterRule(listener: JavaLRListener): void;
@@ -868,6 +965,14 @@ export declare class ClassOrInterfaceTypeContext extends ParserRuleContext {
     accept<Result>(visitor: JavaLRVisitor<Result>): Result;
 }
 export declare class PrimitiveTypeContext extends ParserRuleContext {
+    BOOLEAN(): TerminalNode | undefined;
+    CHAR(): TerminalNode | undefined;
+    BYTE(): TerminalNode | undefined;
+    SHORT(): TerminalNode | undefined;
+    INT(): TerminalNode | undefined;
+    LONG(): TerminalNode | undefined;
+    FLOAT(): TerminalNode | undefined;
+    DOUBLE(): TerminalNode | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
     enterRule(listener: JavaLRListener): void;
@@ -875,6 +980,7 @@ export declare class PrimitiveTypeContext extends ParserRuleContext {
     accept<Result>(visitor: JavaLRVisitor<Result>): Result;
 }
 export declare class VariableModifierContext extends ParserRuleContext {
+    FINAL(): TerminalNode | undefined;
     annotation(): AnnotationContext | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
@@ -883,8 +989,12 @@ export declare class VariableModifierContext extends ParserRuleContext {
     accept<Result>(visitor: JavaLRVisitor<Result>): Result;
 }
 export declare class TypeArgumentsContext extends ParserRuleContext {
+    LT(): TerminalNode;
     typeArgument(): TypeArgumentContext[];
     typeArgument(i: number): TypeArgumentContext;
+    GT(): TerminalNode;
+    COMMA(): TerminalNode[];
+    COMMA(i: number): TerminalNode;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
     enterRule(listener: JavaLRListener): void;
@@ -893,6 +1003,9 @@ export declare class TypeArgumentsContext extends ParserRuleContext {
 }
 export declare class TypeArgumentContext extends ParserRuleContext {
     type(): TypeContext | undefined;
+    QUESTION(): TerminalNode | undefined;
+    EXTENDS(): TerminalNode | undefined;
+    SUPER(): TerminalNode | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
     enterRule(listener: JavaLRListener): void;
@@ -902,6 +1015,8 @@ export declare class TypeArgumentContext extends ParserRuleContext {
 export declare class QualifiedNameListContext extends ParserRuleContext {
     qualifiedName(): QualifiedNameContext[];
     qualifiedName(i: number): QualifiedNameContext;
+    COMMA(): TerminalNode[];
+    COMMA(i: number): TerminalNode;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
     enterRule(listener: JavaLRListener): void;
@@ -909,6 +1024,8 @@ export declare class QualifiedNameListContext extends ParserRuleContext {
     accept<Result>(visitor: JavaLRVisitor<Result>): Result;
 }
 export declare class FormalParametersContext extends ParserRuleContext {
+    LPAREN(): TerminalNode;
+    RPAREN(): TerminalNode;
     formalParameterDecls(): FormalParameterDeclsContext | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
@@ -928,7 +1045,9 @@ export declare class FormalParameterDeclsContext extends ParserRuleContext {
 }
 export declare class FormalParameterDeclsRestContext extends ParserRuleContext {
     variableDeclaratorId(): VariableDeclaratorIdContext;
+    COMMA(): TerminalNode | undefined;
     formalParameterDecls(): FormalParameterDeclsContext | undefined;
+    ELLIPSIS(): TerminalNode | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
     enterRule(listener: JavaLRListener): void;
@@ -954,6 +1073,8 @@ export declare class ConstructorBodyContext extends ParserRuleContext {
 export declare class QualifiedNameContext extends ParserRuleContext {
     Identifier(): TerminalNode[];
     Identifier(i: number): TerminalNode;
+    DOT(): TerminalNode[];
+    DOT(i: number): TerminalNode;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
     enterRule(listener: JavaLRListener): void;
@@ -966,6 +1087,7 @@ export declare class LiteralContext extends ParserRuleContext {
     CharacterLiteral(): TerminalNode | undefined;
     StringLiteral(): TerminalNode | undefined;
     BooleanLiteral(): TerminalNode | undefined;
+    NullLiteral(): TerminalNode | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
     enterRule(listener: JavaLRListener): void;
@@ -982,7 +1104,10 @@ export declare class AnnotationsContext extends ParserRuleContext {
     accept<Result>(visitor: JavaLRVisitor<Result>): Result;
 }
 export declare class AnnotationContext extends ParserRuleContext {
+    AT(): TerminalNode;
     annotationName(): AnnotationNameContext;
+    LPAREN(): TerminalNode | undefined;
+    RPAREN(): TerminalNode | undefined;
     elementValuePairs(): ElementValuePairsContext | undefined;
     elementValue(): ElementValueContext | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
@@ -994,6 +1119,8 @@ export declare class AnnotationContext extends ParserRuleContext {
 export declare class AnnotationNameContext extends ParserRuleContext {
     Identifier(): TerminalNode[];
     Identifier(i: number): TerminalNode;
+    DOT(): TerminalNode[];
+    DOT(i: number): TerminalNode;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
     enterRule(listener: JavaLRListener): void;
@@ -1003,6 +1130,8 @@ export declare class AnnotationNameContext extends ParserRuleContext {
 export declare class ElementValuePairsContext extends ParserRuleContext {
     elementValuePair(): ElementValuePairContext[];
     elementValuePair(i: number): ElementValuePairContext;
+    COMMA(): TerminalNode[];
+    COMMA(i: number): TerminalNode;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
     enterRule(listener: JavaLRListener): void;
@@ -1011,6 +1140,7 @@ export declare class ElementValuePairsContext extends ParserRuleContext {
 }
 export declare class ElementValuePairContext extends ParserRuleContext {
     Identifier(): TerminalNode;
+    ASSIGN(): TerminalNode;
     elementValue(): ElementValueContext;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
@@ -1029,8 +1159,12 @@ export declare class ElementValueContext extends ParserRuleContext {
     accept<Result>(visitor: JavaLRVisitor<Result>): Result;
 }
 export declare class ElementValueArrayInitializerContext extends ParserRuleContext {
+    LBRACE(): TerminalNode;
+    RBRACE(): TerminalNode;
     elementValue(): ElementValueContext[];
     elementValue(i: number): ElementValueContext;
+    COMMA(): TerminalNode[];
+    COMMA(i: number): TerminalNode;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
     enterRule(listener: JavaLRListener): void;
@@ -1038,6 +1172,8 @@ export declare class ElementValueArrayInitializerContext extends ParserRuleConte
     accept<Result>(visitor: JavaLRVisitor<Result>): Result;
 }
 export declare class AnnotationTypeDeclarationContext extends ParserRuleContext {
+    AT(): TerminalNode;
+    INTERFACE(): TerminalNode;
     Identifier(): TerminalNode;
     annotationTypeBody(): AnnotationTypeBodyContext;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
@@ -1047,6 +1183,8 @@ export declare class AnnotationTypeDeclarationContext extends ParserRuleContext 
     accept<Result>(visitor: JavaLRVisitor<Result>): Result;
 }
 export declare class AnnotationTypeBodyContext extends ParserRuleContext {
+    LBRACE(): TerminalNode;
+    RBRACE(): TerminalNode;
     annotationTypeElementDeclaration(): AnnotationTypeElementDeclarationContext[];
     annotationTypeElementDeclaration(i: number): AnnotationTypeElementDeclarationContext;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
@@ -1058,6 +1196,7 @@ export declare class AnnotationTypeBodyContext extends ParserRuleContext {
 export declare class AnnotationTypeElementDeclarationContext extends ParserRuleContext {
     modifiers(): ModifiersContext | undefined;
     annotationTypeElementRest(): AnnotationTypeElementRestContext | undefined;
+    SEMI(): TerminalNode | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
     enterRule(listener: JavaLRListener): void;
@@ -1067,6 +1206,7 @@ export declare class AnnotationTypeElementDeclarationContext extends ParserRuleC
 export declare class AnnotationTypeElementRestContext extends ParserRuleContext {
     type(): TypeContext | undefined;
     annotationMethodOrConstantRest(): AnnotationMethodOrConstantRestContext | undefined;
+    SEMI(): TerminalNode | undefined;
     normalClassDeclaration(): NormalClassDeclarationContext | undefined;
     normalInterfaceDeclaration(): NormalInterfaceDeclarationContext | undefined;
     enumDeclaration(): EnumDeclarationContext | undefined;
@@ -1088,6 +1228,8 @@ export declare class AnnotationMethodOrConstantRestContext extends ParserRuleCon
 }
 export declare class AnnotationMethodRestContext extends ParserRuleContext {
     Identifier(): TerminalNode;
+    LPAREN(): TerminalNode;
+    RPAREN(): TerminalNode;
     defaultValue(): DefaultValueContext | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
@@ -1104,6 +1246,7 @@ export declare class AnnotationConstantRestContext extends ParserRuleContext {
     accept<Result>(visitor: JavaLRVisitor<Result>): Result;
 }
 export declare class DefaultValueContext extends ParserRuleContext {
+    DEFAULT(): TerminalNode;
     elementValue(): ElementValueContext;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
@@ -1112,6 +1255,8 @@ export declare class DefaultValueContext extends ParserRuleContext {
     accept<Result>(visitor: JavaLRVisitor<Result>): Result;
 }
 export declare class BlockContext extends ParserRuleContext {
+    LBRACE(): TerminalNode;
+    RBRACE(): TerminalNode;
     blockStatement(): BlockStatementContext[];
     blockStatement(i: number): BlockStatementContext;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
@@ -1132,6 +1277,7 @@ export declare class BlockStatementContext extends ParserRuleContext {
 }
 export declare class LocalVariableDeclarationStatementContext extends ParserRuleContext {
     localVariableDeclaration(): LocalVariableDeclarationContext;
+    SEMI(): TerminalNode;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
     enterRule(listener: JavaLRListener): void;
@@ -1162,15 +1308,33 @@ export declare class StatementContext extends ParserRuleContext {
     ASSERT(): TerminalNode | undefined;
     expression(): ExpressionContext[];
     expression(i: number): ExpressionContext;
+    SEMI(): TerminalNode | undefined;
+    COLON(): TerminalNode | undefined;
+    IF(): TerminalNode | undefined;
     parExpression(): ParExpressionContext | undefined;
     statement(): StatementContext[];
     statement(i: number): StatementContext;
+    ELSE(): TerminalNode | undefined;
+    FOR(): TerminalNode | undefined;
+    LPAREN(): TerminalNode | undefined;
     forControl(): ForControlContext | undefined;
+    RPAREN(): TerminalNode | undefined;
+    WHILE(): TerminalNode | undefined;
+    DO(): TerminalNode | undefined;
+    TRY(): TerminalNode | undefined;
     catches(): CatchesContext | undefined;
     finallyBlock(): FinallyBlockContext | undefined;
     resourceSpecification(): ResourceSpecificationContext | undefined;
+    SWITCH(): TerminalNode | undefined;
+    LBRACE(): TerminalNode | undefined;
     switchBlockStatementGroups(): SwitchBlockStatementGroupsContext | undefined;
+    RBRACE(): TerminalNode | undefined;
+    SYNCHRONIZED(): TerminalNode | undefined;
+    RETURN(): TerminalNode | undefined;
+    THROW(): TerminalNode | undefined;
+    BREAK(): TerminalNode | undefined;
     Identifier(): TerminalNode | undefined;
+    CONTINUE(): TerminalNode | undefined;
     statementExpression(): StatementExpressionContext | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
@@ -1188,9 +1352,12 @@ export declare class CatchesContext extends ParserRuleContext {
     accept<Result>(visitor: JavaLRVisitor<Result>): Result;
 }
 export declare class CatchClauseContext extends ParserRuleContext {
+    CATCH(): TerminalNode;
+    LPAREN(): TerminalNode;
     variableModifiers(): VariableModifiersContext;
     catchType(): CatchTypeContext;
     Identifier(): TerminalNode;
+    RPAREN(): TerminalNode;
     block(): BlockContext;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
@@ -1201,6 +1368,8 @@ export declare class CatchClauseContext extends ParserRuleContext {
 export declare class CatchTypeContext extends ParserRuleContext {
     qualifiedName(): QualifiedNameContext[];
     qualifiedName(i: number): QualifiedNameContext;
+    BITOR(): TerminalNode[];
+    BITOR(i: number): TerminalNode;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
     enterRule(listener: JavaLRListener): void;
@@ -1208,6 +1377,7 @@ export declare class CatchTypeContext extends ParserRuleContext {
     accept<Result>(visitor: JavaLRVisitor<Result>): Result;
 }
 export declare class FinallyBlockContext extends ParserRuleContext {
+    FINALLY(): TerminalNode;
     block(): BlockContext;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
@@ -1216,7 +1386,10 @@ export declare class FinallyBlockContext extends ParserRuleContext {
     accept<Result>(visitor: JavaLRVisitor<Result>): Result;
 }
 export declare class ResourceSpecificationContext extends ParserRuleContext {
+    LPAREN(): TerminalNode;
     resources(): ResourcesContext;
+    RPAREN(): TerminalNode;
+    SEMI(): TerminalNode | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
     enterRule(listener: JavaLRListener): void;
@@ -1226,6 +1399,8 @@ export declare class ResourceSpecificationContext extends ParserRuleContext {
 export declare class ResourcesContext extends ParserRuleContext {
     resource(): ResourceContext[];
     resource(i: number): ResourceContext;
+    SEMI(): TerminalNode[];
+    SEMI(i: number): TerminalNode;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
     enterRule(listener: JavaLRListener): void;
@@ -1236,6 +1411,7 @@ export declare class ResourceContext extends ParserRuleContext {
     variableModifiers(): VariableModifiersContext;
     classOrInterfaceType(): ClassOrInterfaceTypeContext;
     variableDeclaratorId(): VariableDeclaratorIdContext;
+    ASSIGN(): TerminalNode;
     expression(): ExpressionContext;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
@@ -1274,8 +1450,11 @@ export declare class SwitchBlockStatementGroupContext extends ParserRuleContext 
     accept<Result>(visitor: JavaLRVisitor<Result>): Result;
 }
 export declare class SwitchLabelContext extends ParserRuleContext {
+    CASE(): TerminalNode | undefined;
     constantExpression(): ConstantExpressionContext | undefined;
+    COLON(): TerminalNode;
     enumConstantName(): EnumConstantNameContext | undefined;
+    DEFAULT(): TerminalNode | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
     enterRule(listener: JavaLRListener): void;
@@ -1284,6 +1463,8 @@ export declare class SwitchLabelContext extends ParserRuleContext {
 }
 export declare class ForControlContext extends ParserRuleContext {
     enhancedForControl(): EnhancedForControlContext | undefined;
+    SEMI(): TerminalNode[];
+    SEMI(i: number): TerminalNode;
     forInit(): ForInitContext | undefined;
     expression(): ExpressionContext | undefined;
     forUpdate(): ForUpdateContext | undefined;
@@ -1306,6 +1487,7 @@ export declare class EnhancedForControlContext extends ParserRuleContext {
     variableModifiers(): VariableModifiersContext;
     type(): TypeContext;
     Identifier(): TerminalNode;
+    COLON(): TerminalNode;
     expression(): ExpressionContext;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
@@ -1322,7 +1504,9 @@ export declare class ForUpdateContext extends ParserRuleContext {
     accept<Result>(visitor: JavaLRVisitor<Result>): Result;
 }
 export declare class ParExpressionContext extends ParserRuleContext {
+    LPAREN(): TerminalNode;
     expression(): ExpressionContext;
+    RPAREN(): TerminalNode;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
     enterRule(listener: JavaLRListener): void;
@@ -1332,6 +1516,8 @@ export declare class ParExpressionContext extends ParserRuleContext {
 export declare class ExpressionListContext extends ParserRuleContext {
     expression(): ExpressionContext[];
     expression(i: number): ExpressionContext;
+    COMMA(): TerminalNode[];
+    COMMA(i: number): TerminalNode;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
     enterRule(listener: JavaLRListener): void;
@@ -1358,14 +1544,59 @@ export declare class ExpressionContext extends ParserRuleContext {
     primary(): PrimaryContext | undefined;
     expression(): ExpressionContext[];
     expression(i: number): ExpressionContext;
+    DOT(): TerminalNode | undefined;
     Identifier(): TerminalNode | undefined;
+    THIS(): TerminalNode | undefined;
+    NEW(): TerminalNode | undefined;
     innerCreator(): InnerCreatorContext | undefined;
     nonWildcardTypeArguments(): NonWildcardTypeArgumentsContext | undefined;
+    SUPER(): TerminalNode | undefined;
     superSuffix(): SuperSuffixContext | undefined;
     explicitGenericInvocation(): ExplicitGenericInvocationContext | undefined;
     creator(): CreatorContext | undefined;
+    LBRACK(): TerminalNode | undefined;
+    RBRACK(): TerminalNode | undefined;
+    LPAREN(): TerminalNode | undefined;
     type(): TypeContext | undefined;
+    RPAREN(): TerminalNode | undefined;
+    INC(): TerminalNode | undefined;
+    DEC(): TerminalNode | undefined;
     expressionList(): ExpressionListContext | undefined;
+    ADD(): TerminalNode | undefined;
+    SUB(): TerminalNode | undefined;
+    TILDE(): TerminalNode | undefined;
+    BANG(): TerminalNode | undefined;
+    MUL(): TerminalNode | undefined;
+    DIV(): TerminalNode | undefined;
+    MOD(): TerminalNode | undefined;
+    LT(): TerminalNode[];
+    LT(i: number): TerminalNode;
+    GT(): TerminalNode[];
+    GT(i: number): TerminalNode;
+    LE(): TerminalNode | undefined;
+    GE(): TerminalNode | undefined;
+    INSTANCEOF(): TerminalNode | undefined;
+    EQUAL(): TerminalNode | undefined;
+    NOTEQUAL(): TerminalNode | undefined;
+    BITAND(): TerminalNode | undefined;
+    CARET(): TerminalNode | undefined;
+    BITOR(): TerminalNode | undefined;
+    AND(): TerminalNode | undefined;
+    OR(): TerminalNode | undefined;
+    QUESTION(): TerminalNode | undefined;
+    COLON(): TerminalNode | undefined;
+    ASSIGN(): TerminalNode | undefined;
+    ADD_ASSIGN(): TerminalNode | undefined;
+    SUB_ASSIGN(): TerminalNode | undefined;
+    MUL_ASSIGN(): TerminalNode | undefined;
+    DIV_ASSIGN(): TerminalNode | undefined;
+    AND_ASSIGN(): TerminalNode | undefined;
+    OR_ASSIGN(): TerminalNode | undefined;
+    XOR_ASSIGN(): TerminalNode | undefined;
+    RSHIFT_ASSIGN(): TerminalNode | undefined;
+    URSHIFT_ASSIGN(): TerminalNode | undefined;
+    LSHIFT_ASSIGN(): TerminalNode | undefined;
+    MOD_ASSIGN(): TerminalNode | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
     enterRule(listener: JavaLRListener): void;
@@ -1373,10 +1604,17 @@ export declare class ExpressionContext extends ParserRuleContext {
     accept<Result>(visitor: JavaLRVisitor<Result>): Result;
 }
 export declare class PrimaryContext extends ParserRuleContext {
+    LPAREN(): TerminalNode | undefined;
     expression(): ExpressionContext | undefined;
+    RPAREN(): TerminalNode | undefined;
+    THIS(): TerminalNode | undefined;
+    SUPER(): TerminalNode | undefined;
     literal(): LiteralContext | undefined;
     Identifier(): TerminalNode | undefined;
     type(): TypeContext | undefined;
+    DOT(): TerminalNode | undefined;
+    CLASS(): TerminalNode | undefined;
+    VOID(): TerminalNode | undefined;
     nonWildcardTypeArguments(): NonWildcardTypeArgumentsContext | undefined;
     explicitGenericInvocationSuffix(): ExplicitGenericInvocationSuffixContext | undefined;
     arguments(): ArgumentsContext | undefined;
@@ -1402,6 +1640,8 @@ export declare class CreatedNameContext extends ParserRuleContext {
     Identifier(i: number): TerminalNode;
     typeArgumentsOrDiamond(): TypeArgumentsOrDiamondContext[];
     typeArgumentsOrDiamond(i: number): TypeArgumentsOrDiamondContext;
+    DOT(): TerminalNode[];
+    DOT(i: number): TerminalNode;
     primitiveType(): PrimitiveTypeContext | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
@@ -1420,6 +1660,10 @@ export declare class InnerCreatorContext extends ParserRuleContext {
     accept<Result>(visitor: JavaLRVisitor<Result>): Result;
 }
 export declare class ArrayCreatorRestContext extends ParserRuleContext {
+    LBRACK(): TerminalNode[];
+    LBRACK(i: number): TerminalNode;
+    RBRACK(): TerminalNode[];
+    RBRACK(i: number): TerminalNode;
     arrayInitializer(): ArrayInitializerContext | undefined;
     expression(): ExpressionContext[];
     expression(i: number): ExpressionContext;
@@ -1448,7 +1692,9 @@ export declare class ExplicitGenericInvocationContext extends ParserRuleContext 
     accept<Result>(visitor: JavaLRVisitor<Result>): Result;
 }
 export declare class NonWildcardTypeArgumentsContext extends ParserRuleContext {
+    LT(): TerminalNode;
     typeList(): TypeListContext;
+    GT(): TerminalNode;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
     enterRule(listener: JavaLRListener): void;
@@ -1456,6 +1702,8 @@ export declare class NonWildcardTypeArgumentsContext extends ParserRuleContext {
     accept<Result>(visitor: JavaLRVisitor<Result>): Result;
 }
 export declare class TypeArgumentsOrDiamondContext extends ParserRuleContext {
+    LT(): TerminalNode | undefined;
+    GT(): TerminalNode | undefined;
     typeArguments(): TypeArgumentsContext | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
@@ -1464,6 +1712,8 @@ export declare class TypeArgumentsOrDiamondContext extends ParserRuleContext {
     accept<Result>(visitor: JavaLRVisitor<Result>): Result;
 }
 export declare class NonWildcardTypeArgumentsOrDiamondContext extends ParserRuleContext {
+    LT(): TerminalNode | undefined;
+    GT(): TerminalNode | undefined;
     nonWildcardTypeArguments(): NonWildcardTypeArgumentsContext | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
@@ -1473,6 +1723,7 @@ export declare class NonWildcardTypeArgumentsOrDiamondContext extends ParserRule
 }
 export declare class SuperSuffixContext extends ParserRuleContext {
     arguments(): ArgumentsContext | undefined;
+    DOT(): TerminalNode | undefined;
     Identifier(): TerminalNode | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;
@@ -1481,6 +1732,7 @@ export declare class SuperSuffixContext extends ParserRuleContext {
     accept<Result>(visitor: JavaLRVisitor<Result>): Result;
 }
 export declare class ExplicitGenericInvocationSuffixContext extends ParserRuleContext {
+    SUPER(): TerminalNode | undefined;
     superSuffix(): SuperSuffixContext | undefined;
     Identifier(): TerminalNode | undefined;
     arguments(): ArgumentsContext | undefined;
@@ -1491,6 +1743,8 @@ export declare class ExplicitGenericInvocationSuffixContext extends ParserRuleCo
     accept<Result>(visitor: JavaLRVisitor<Result>): Result;
 }
 export declare class ArgumentsContext extends ParserRuleContext {
+    LPAREN(): TerminalNode;
+    RPAREN(): TerminalNode;
     expressionList(): ExpressionListContext | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     readonly ruleIndex: number;

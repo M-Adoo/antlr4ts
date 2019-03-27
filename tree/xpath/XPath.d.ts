@@ -44,8 +44,6 @@ import { XPathElement } from "./XPathElement";
  * Whitespace is not allowed.
  */
 export declare class XPath {
-    static readonly WILDCARD: string;
-    static readonly NOT: string;
     protected path: string;
     protected elements: XPathElement[];
     protected parser: Parser;

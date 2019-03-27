@@ -31,6 +31,9 @@ var __values = (this && this.__values) || function (o) {
         }
     };
 };
+// ConvertTo-TS run at 2016-10-04T11:26:53.1043451-07:00
+import { Parser } from "./Parser";
+import { ParserATNSimulator } from "./atn/ParserATNSimulator";
 import { ATNState } from "./atn/ATNState";
 import { ATNStateType } from "./atn/ATNStateType";
 import { BitSet } from "./misc/BitSet";
@@ -40,8 +43,6 @@ import { InterpreterRuleContext } from "./InterpreterRuleContext";
 import { LoopEndState } from "./atn/LoopEndState";
 import { NotNull } from "./Decorators";
 import { Override } from "./Decorators";
-import { Parser } from "./Parser";
-import { ParserATNSimulator } from "./atn/ParserATNSimulator";
 import { RecognitionException } from "./RecognitionException";
 import { StarLoopEntryState } from "./atn/StarLoopEntryState";
 import { Token } from "./Token";
@@ -297,7 +298,6 @@ var ParserInterpreter = /** @class */ (function (_super) {
      *  for subclasses to track interesting things.
      */
     ParserInterpreter.prototype.visitDecisionState = function (p) {
-        var edge = 1;
         var predictedAlt;
         this.errorHandler.sync(this);
         var decision = p.decision;
@@ -402,16 +402,20 @@ var ParserInterpreter = /** @class */ (function (_super) {
                 if (expectedTokens === undefined) {
                     throw new Error("Expected the exception to provide expected tokens");
                 }
-                var expectedTokenType = expectedTokens.minElement; // get any element
+                var expectedTokenType = Token.INVALID_TYPE;
+                if (!expectedTokens.isNil) {
+                    // get any element
+                    expectedTokenType = expectedTokens.minElement;
+                }
                 var errToken = this.tokenFactory.create(sourcePair, expectedTokenType, tok.text, Token.DEFAULT_CHANNEL, -1, -1, // invalid start/stop
                 tok.line, tok.charPositionInLine);
-                this._ctx.addErrorNode(errToken);
+                this._ctx.addErrorNode(this.createErrorNode(this._ctx, errToken));
             }
             else { // NoViableAlt
                 var source_1 = tok.tokenSource;
                 var errToken = this.tokenFactory.create(sourcePair, Token.INVALID_TYPE, tok.text, Token.DEFAULT_CHANNEL, -1, -1, // invalid start/stop
                 tok.line, tok.charPositionInLine);
-                this._ctx.addErrorNode(errToken);
+                this._ctx.addErrorNode(this.createErrorNode(this._ctx, errToken));
             }
         }
     };

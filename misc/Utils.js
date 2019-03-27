@@ -65,6 +65,14 @@ export function equals(x, y) {
 // 	if ( data==null ) return;
 // 	while ( data.contains(value) ) data.remove(value);
 // }
+// export function writeFile(@NotNull file: File, @NotNull content: Uint8Array): void {
+// 	let fos: FileOutputStream = new FileOutputStream(file);
+// 	try {
+// 		fos.write(content);
+// 	} finally {
+// 		fos.close();
+// 	}
+// }
 // export function writeFile(@NotNull fileName: string, @NotNull content: string): void {
 // 	writeFile(fileName, content, null);
 // }
@@ -152,20 +160,17 @@ export function toMap(keys) {
     return m;
 }
 export function toCharArray(str) {
-    var result = new Uint16Array(str.length);
-    for (var i = 0; i < str.length; i++) {
-        result[i] = str.charCodeAt(i);
+    if (typeof str === "string") {
+        var result = new Uint16Array(str.length);
+        for (var i = 0; i < str.length; i++) {
+            result[i] = str.charCodeAt(i);
+        }
+        return result;
     }
-    return result;
+    else {
+        return str.toCharArray();
+    }
 }
-// export function toCharArray(data: IntegerList): char[] {
-// 	if ( data==null ) return null;
-// 	let cdata: char[] =  new char[data.size];
-// 	for (let i=0; i<data.size; i++) {
-// 		cdata[i] = (char)data.get(i);
-// 	}
-// 	return cdata;
-// }
 // /**
 // 	* @since 4.5
 // 	*/

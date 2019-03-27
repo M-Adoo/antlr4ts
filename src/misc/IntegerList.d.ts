@@ -59,4 +59,11 @@ export declare class IntegerList {
     toString(): string;
     binarySearch(key: number, fromIndex?: number, toIndex?: number): number;
     private ensureCapacity(capacity);
+    /** Convert the list to a UTF-16 encoded char array. If all values are less
+     *  than the 0xFFFF 16-bit code point limit then this is just a char array
+     *  of 16-bit char as usual. For values in the supplementary range, encode
+     * them as two UTF-16 code units.
+     */
+    toCharArray(): Uint16Array;
+    private charArraySize();
 }

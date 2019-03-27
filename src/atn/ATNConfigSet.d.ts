@@ -9,7 +9,7 @@ import { ATNState } from "./ATNState";
 import { BitSet } from "../misc/BitSet";
 import { ConflictInfo } from "./ConflictInfo";
 import { JavaSet } from "../misc/Stubs";
-import { PredictionContextCache } from "./PredictionContextCache";
+import { PredictionContextCache } from "./PredictionContext";
 /**
  * Represents a set of ATN configurations (see `ATNConfig`). As configurations are added to the set, they are merged
  * with other `ATNConfig` instances already in the set when possible using the graph-structured stack.

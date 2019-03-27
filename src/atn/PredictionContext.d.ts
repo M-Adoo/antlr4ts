@@ -6,7 +6,6 @@ import { Array2DHashMap } from "../misc/Array2DHashMap";
 import { ATN } from "./ATN";
 import { EqualityComparator } from "../misc/EqualityComparator";
 import { Equatable } from "../misc/Stubs";
-import { PredictionContextCache } from "./PredictionContextCache";
 import { Recognizer } from "../Recognizer";
 import { RuleContext } from "../RuleContext";
 export declare abstract class PredictionContext implements Equatable {
@@ -85,5 +84,40 @@ export declare namespace PredictionContext {
         private IdentityEqualityComparator();
         hashCode(obj: PredictionContext): number;
         equals(a: PredictionContext, b: PredictionContext): boolean;
+    }
+}
+/** Used to cache {@link PredictionContext} objects. Its used for the shared
+ *  context cash associated with contexts in DFA states. This cache
+ *  can be used for both lexers and parsers.
+ *
+ * @author Sam Harwell
+ */
+export declare class PredictionContextCache {
+    static UNCACHED: PredictionContextCache;
+    private contexts;
+    private childContexts;
+    private joinContexts;
+    private enableCache;
+    constructor(enableCache?: boolean);
+    getAsCached(context: PredictionContext): PredictionContext;
+    getChild(context: PredictionContext, invokingState: number): PredictionContext;
+    join(x: PredictionContext, y: PredictionContext): PredictionContext;
+}
+export declare namespace PredictionContextCache {
+    class PredictionContextAndInt {
+        private obj;
+        private value;
+        constructor(obj: PredictionContext, value: number);
+        equals(obj: any): boolean;
+        hashCode(): number;
+    }
+    class IdentityCommutativePredictionContextOperands {
+        private _x;
+        private _y;
+        constructor(x: PredictionContext, y: PredictionContext);
+        readonly x: PredictionContext;
+        readonly y: PredictionContext;
+        equals(o: any): boolean;
+        hashCode(): number;
     }
 }

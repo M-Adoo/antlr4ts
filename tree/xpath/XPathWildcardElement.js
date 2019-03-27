@@ -31,12 +31,12 @@ var __values = (this && this.__values) || function (o) {
 // CONVERSTION complete, Burt Harris 10/14/2016
 import { Override } from "../../Decorators";
 import { Trees } from "../Trees";
-import { XPath } from "./XPath";
+import { XPATH_WILDCARD } from "./Constant";
 import { XPathElement } from "./XPathElement";
 var XPathWildcardElement = /** @class */ (function (_super) {
     __extends(XPathWildcardElement, _super);
     function XPathWildcardElement() {
-        return _super.call(this, XPath.WILDCARD) || this;
+        return _super.call(this, XPATH_WILDCARD) || this;
     }
     XPathWildcardElement.prototype.evaluate = function (t) {
         var kids = [];

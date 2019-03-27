@@ -2,6 +2,7 @@
  * Copyright 2016 The ANTLR Project. All rights reserved.
  * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
  */
+import { Parser } from "../Parser";
 import { ActionTransition } from "./ActionTransition";
 import { Array2DHashSet } from "../misc/Array2DHashSet";
 import { ATN } from "./ATN";
@@ -14,11 +15,10 @@ import { DFA } from "../dfa/DFA";
 import { DFAState } from "../dfa/DFAState";
 import { IntegerList } from "../misc/IntegerList";
 import { NoViableAltException } from "../NoViableAltException";
-import { Parser } from "../Parser";
 import { ParserRuleContext } from "../ParserRuleContext";
 import { PrecedencePredicateTransition } from "./PrecedencePredicateTransition";
 import { PredicateTransition } from "./PredicateTransition";
-import { PredictionContextCache } from "./PredictionContextCache";
+import { PredictionContextCache } from "./PredictionContext";
 import { PredictionMode } from "./PredictionMode";
 import { RuleContext } from "../RuleContext";
 import { RuleTransition } from "./RuleTransition";

@@ -376,32 +376,26 @@ var IntervalSet = /** @class */ (function () {
     /** {@inheritDoc} */
     IntervalSet.prototype.contains = function (el) {
         var n = this._intervals.length;
-        for (var i = 0; i < n; i++) {
-            var I = this._intervals[i];
+        var l = 0;
+        var r = n - 1;
+        // Binary search for the element in the (sorted, disjoint) array of intervals.
+        while (l <= r) {
+            var m = (l + r) >> 1;
+            var I = this._intervals[m];
             var a = I.a;
             var b = I.b;
-            if (el < a) {
-                // list is sorted and el is before this interval; not here
-                break;
+            if (b < el) {
+                l = m + 1;
             }
-            if (el >= a && el <= b) {
-                // found in this interval
+            else if (a > el) {
+                r = m - 1;
+            }
+            else {
+                // el >= a && el <= b
                 return true;
             }
         }
         return false;
-        /*
-                for (ListIterator iter = intervals.listIterator(); iter.hasNext();) {
-                    let I: Interval =  (Interval) iter.next();
-                    if ( el<I.a ) {
-                        break; // list is sorted and el is before this interval; not here
-                    }
-                    if ( el>=I.a && el<=I.b ) {
-                        return true; // found in this interval
-                    }
-                }
-                return false;
-                */
     };
     Object.defineProperty(IntervalSet.prototype, "isNil", {
         /** {@inheritDoc} */
@@ -411,26 +405,16 @@ var IntervalSet = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
-    /** {@inheritDoc} */
-    IntervalSet.prototype.getSingleElement = function () {
-        if (this._intervals != null && this._intervals.length === 1) {
-            var I = this._intervals[0];
-            if (I.a === I.b) {
-                return I.a;
-            }
-        }
-        return Token.INVALID_TYPE;
-    };
     Object.defineProperty(IntervalSet.prototype, "maxElement", {
         /**
-         * Returns the maximum value contained in the set.
+         * Returns the maximum value contained in the set if not isNil.
          *
-         * @returns the maximum value contained in the set. If the set is empty, this
-         * method returns {@link Token#INVALID_TYPE}.
+         * @return the maximum value contained in the set.
+         * @throws RangeError if set is empty
          */
         get: function () {
             if (this.isNil) {
-                return Token.INVALID_TYPE;
+                throw new RangeError("set is empty");
             }
             var last = this._intervals[this._intervals.length - 1];
             return last.b;
@@ -440,14 +424,14 @@ var IntervalSet = /** @class */ (function () {
     });
     Object.defineProperty(IntervalSet.prototype, "minElement", {
         /**
-         * Returns the minimum value contained in the set.
+         * Returns the minimum value contained in the set if not isNil.
          *
-         * @returns the minimum value contained in the set. If the set is empty, this
-         * method returns {@link Token#INVALID_TYPE}.
+         * @return the minimum value contained in the set.
+         * @throws RangeError if set is empty
          */
         get: function () {
             if (this.isNil) {
-                return Token.INVALID_TYPE;
+                throw new RangeError("set is empty");
             }
             return this._intervals[0].a;
         },
@@ -519,7 +503,7 @@ var IntervalSet = /** @class */ (function () {
                         buf += "<EOF>";
                     }
                     else if (elemAreChar) {
-                        buf += "'" + String.fromCharCode(a) + "'";
+                        buf += "'" + String.fromCodePoint(a) + "'";
                     }
                     else {
                         buf += a;
@@ -527,7 +511,7 @@ var IntervalSet = /** @class */ (function () {
                 }
                 else {
                     if (elemAreChar) {
-                        buf += "'" + String.fromCharCode(a) + "'..'" + String.fromCharCode(b) + "'";
+                        buf += "'" + String.fromCodePoint(a) + "'..'" + String.fromCodePoint(b) + "'";
                     }
                     else {
                         buf += a + ".." + b;
@@ -739,9 +723,6 @@ var IntervalSet = /** @class */ (function () {
     __decorate([
         Override
     ], IntervalSet.prototype, "isNil", null);
-    __decorate([
-        Override
-    ], IntervalSet.prototype, "getSingleElement", null);
     __decorate([
         Override
     ], IntervalSet.prototype, "hashCode", null);

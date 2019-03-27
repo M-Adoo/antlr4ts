@@ -8,6 +8,7 @@ import { InputMismatchException } from "./InputMismatchException";
 import { IntervalSet } from "./misc/IntervalSet";
 import { NoViableAltException } from "./NoViableAltException";
 import { Parser } from "./Parser";
+import { ParserRuleContext } from "./ParserRuleContext";
 import { RecognitionException } from "./RecognitionException";
 import { Token } from "./Token";
 import { TokenSource } from "./TokenSource";
@@ -32,6 +33,19 @@ export declare class DefaultErrorStrategy implements ANTLRErrorStrategy {
      */
     protected lastErrorIndex: number;
     protected lastErrorStates?: IntervalSet;
+    /**
+     * This field is used to propagate information about the lookahead following
+     * the previous match. Since prediction prefers completing the current rule
+     * to error recovery efforts, error reporting may occur later than the
+     * original point where it was discoverable. The original context is used to
+     * compute the true expected sets as though the reporting occurred as early
+     * as possible.
+     */
+    protected nextTokensContext?: ParserRuleContext;
+    /**
+     * @see #nextTokensContext
+     */
+    protected nextTokensState: number;
     /**
      * {@inheritDoc}
      *

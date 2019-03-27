@@ -2,6 +2,7 @@
  * Copyright 2016 The ANTLR Project. All rights reserved.
  * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
  */
+export * from "./Constant";
 export * from "./AbstractPredicateTransition";
 export * from "./ActionTransition";
 export * from "./AmbiguityInfo";
@@ -20,6 +21,7 @@ export * from "./BasicBlockStartState";
 export * from "./BasicState";
 export * from "./BlockEndState";
 export * from "./BlockStartState";
+export * from "./CodePointTransitions";
 export * from "./ConflictInfo";
 export * from "./ContextSensitivityInfo";
 export * from "./DecisionEventInfo";
@@ -53,7 +55,6 @@ export * from "./PrecedencePredicateTransition";
 export * from "./PredicateEvalInfo";
 export * from "./PredicateTransition";
 export * from "./PredictionContext";
-export * from "./PredictionContextCache";
 export * from "./PredictionMode";
 export * from "./ProfilingATNSimulator";
 export * from "./RangeTransition";

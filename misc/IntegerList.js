@@ -274,6 +274,45 @@ var IntegerList = /** @class */ (function () {
         tmp.set(this._data);
         this._data = tmp;
     };
+    /** Convert the list to a UTF-16 encoded char array. If all values are less
+     *  than the 0xFFFF 16-bit code point limit then this is just a char array
+     *  of 16-bit char as usual. For values in the supplementary range, encode
+     * them as two UTF-16 code units.
+     */
+    IntegerList.prototype.toCharArray = function () {
+        // Optimize for the common case (all data values are < 0xFFFF) to avoid an extra scan
+        var resultArray = new Uint16Array(this._size);
+        var resultIdx = 0;
+        var calculatedPreciseResultSize = false;
+        for (var i = 0; i < this._size; i++) {
+            var codePoint = this._data[i];
+            if (codePoint >= 0 && codePoint < 0x10000) {
+                resultArray[resultIdx] = codePoint;
+                resultIdx++;
+                continue;
+            }
+            // Calculate the precise result size if we encounter a code point > 0xFFFF
+            if (!calculatedPreciseResultSize) {
+                var newResultArray = new Uint16Array(this.charArraySize());
+                newResultArray.set(resultArray, 0);
+                resultArray = newResultArray;
+                calculatedPreciseResultSize = true;
+            }
+            // This will throw RangeError if the code point is not a valid Unicode code point
+            var pair = String.fromCodePoint(codePoint);
+            resultArray[resultIdx] = pair.charCodeAt(0);
+            resultArray[resultIdx + 1] = pair.charCodeAt(1);
+            resultIdx += 2;
+        }
+        return resultArray;
+    };
+    IntegerList.prototype.charArraySize = function () {
+        var result = 0;
+        for (var i = 0; i < this._size; i++) {
+            result += this._data[i] >= 0x10000 ? 2 : 1;
+        }
+        return result;
+    };
     __decorate([
         NotNull
     ], IntegerList.prototype, "_data", void 0);

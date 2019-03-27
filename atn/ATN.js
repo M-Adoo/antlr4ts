@@ -21,7 +21,7 @@ import { NotNull } from "../Decorators";
 import { ObjectEqualityComparator } from "../misc/ObjectEqualityComparator";
 import { PredictionContext } from "./PredictionContext";
 import { Token } from "../Token";
-// import * as assert from "assert";
+import assert from "assert";
 /** */
 var ATN = /** @class */ (function () {
     /** Used for runtime deserialization of ATNs from strings */
@@ -64,7 +64,7 @@ var ATN = /** @class */ (function () {
         return PredictionContext.getCachedContext(context, this.contextCache, new PredictionContext.IdentityHashMap());
     };
     ATN.prototype.getDecisionToDFA = function () {
-        // assert(this.decisionToDFA != null && this.decisionToDFA.length === this.decisionToState.length);
+        assert(this.decisionToDFA != null && this.decisionToDFA.length === this.decisionToState.length);
         return this.decisionToDFA;
     };
     ATN.prototype.nextTokens = function (s, ctx) {
@@ -220,7 +220,4 @@ var ATN = /** @class */ (function () {
     return ATN;
 }());
 export { ATN };
-(function (ATN) {
-    ATN.INVALID_ALT_NUMBER = 0;
-})(ATN || (ATN = {}));
 //# sourceMappingURL=ATN.js.map

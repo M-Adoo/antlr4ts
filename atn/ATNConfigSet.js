@@ -49,15 +49,15 @@ var __values = (this && this.__values) || function (o) {
 import { Array2DHashMap } from "../misc/Array2DHashMap";
 import { Array2DHashSet } from "../misc/Array2DHashSet";
 import { ArrayEqualityComparator } from "../misc/ArrayEqualityComparator";
-import { ATN } from "./ATN";
+import { INVALID_ALT_NUMBER } from "./Constant";
 import { ATNConfig } from "./ATNConfig";
 import { BitSet } from "../misc/BitSet";
 import { NotNull, Override } from "../Decorators";
 import { ObjectEqualityComparator } from "../misc/ObjectEqualityComparator";
 import { PredictionContext } from "./PredictionContext";
-import { PredictionContextCache } from "./PredictionContextCache";
+import { PredictionContextCache } from "./PredictionContext";
 import { SemanticContext } from "./SemanticContext";
-// import * as assert from "assert";
+import assert from "assert";
 import * as Utils from "../misc/Utils";
 var KeyTypeEqualityComparer = /** @class */ (function () {
     function KeyTypeEqualityComparer() {
@@ -112,7 +112,7 @@ var ATNConfigSet = /** @class */ (function () {
             this.mergedConfigs = NewKeyedConfigMap();
             this.unmerged = [];
             this.configs = [];
-            this._uniqueAlt = ATN.INVALID_ALT_NUMBER;
+            this._uniqueAlt = INVALID_ALT_NUMBER;
         }
         else {
             if (readonly) {
@@ -178,7 +178,7 @@ var ATNConfigSet = /** @class */ (function () {
             if (this.outermostConfigSet && !outermostConfigSet) {
                 throw new Error("IllegalStateException");
             }
-            // assert(!outermostConfigSet || !this._dipsIntoOuterContext);
+            assert(!outermostConfigSet || !this._dipsIntoOuterContext);
             this.outermostConfigSet = outermostConfigSet;
         },
         enumerable: true,
@@ -307,7 +307,7 @@ var ATNConfigSet = /** @class */ (function () {
         if (!this.mergedConfigs || !this.unmerged) {
             throw new Error("Covered by ensureWritable but duplicated here for strict null check limitation");
         }
-        // assert(!this.outermostConfigSet || !e.reachesIntoOuterContext);
+        assert(!this.outermostConfigSet || !e.reachesIntoOuterContext);
         if (contextCache == null) {
             contextCache = PredictionContextCache.UNCACHED;
         }
@@ -361,18 +361,18 @@ var ATNConfigSet = /** @class */ (function () {
     ATNConfigSet.prototype.updatePropertiesForMergedConfig = function (config) {
         // merged configs can't change the alt or semantic context
         this._dipsIntoOuterContext = this._dipsIntoOuterContext || config.reachesIntoOuterContext;
-        // assert(!this.outermostConfigSet || !this._dipsIntoOuterContext);
+        assert(!this.outermostConfigSet || !this._dipsIntoOuterContext);
     };
     ATNConfigSet.prototype.updatePropertiesForAddedConfig = function (config) {
         if (this.configs.length === 1) {
             this._uniqueAlt = config.alt;
         }
         else if (this._uniqueAlt !== config.alt) {
-            this._uniqueAlt = ATN.INVALID_ALT_NUMBER;
+            this._uniqueAlt = INVALID_ALT_NUMBER;
         }
         this._hasSemanticContext = this._hasSemanticContext || !SemanticContext.NONE.equals(config.semanticContext);
         this._dipsIntoOuterContext = this._dipsIntoOuterContext || config.reachesIntoOuterContext;
-        // assert(!this.outermostConfigSet || !this._dipsIntoOuterContext);
+        assert(!this.outermostConfigSet || !this._dipsIntoOuterContext);
     };
     ATNConfigSet.prototype.canMerge = function (left, leftKey, right) {
         if (left.state.stateNumber !== right.state.stateNumber) {
@@ -439,7 +439,7 @@ var ATNConfigSet = /** @class */ (function () {
         this.configs.length = 0;
         this._dipsIntoOuterContext = false;
         this._hasSemanticContext = false;
-        this._uniqueAlt = ATN.INVALID_ALT_NUMBER;
+        this._uniqueAlt = INVALID_ALT_NUMBER;
         this._conflictInfo = undefined;
     };
     ATNConfigSet.prototype.equals = function (obj) {
@@ -493,7 +493,7 @@ var ATNConfigSet = /** @class */ (function () {
         if (this._hasSemanticContext) {
             buf += (",hasSemanticContext=") + (this._hasSemanticContext);
         }
-        if (this._uniqueAlt !== ATN.INVALID_ALT_NUMBER) {
+        if (this._uniqueAlt !== INVALID_ALT_NUMBER) {
             buf += (",uniqueAlt=") + (this._uniqueAlt);
         }
         if (this._conflictInfo != null) {

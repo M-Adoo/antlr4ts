@@ -6,7 +6,7 @@ import { ATNState } from "./ATNState";
 import { Equatable } from "../misc/Stubs";
 import { LexerActionExecutor } from "./LexerActionExecutor";
 import { PredictionContext } from "./PredictionContext";
-import { PredictionContextCache } from "./PredictionContextCache";
+import { PredictionContextCache } from "./PredictionContext";
 import { Recognizer } from "../Recognizer";
 import { SemanticContext } from "./SemanticContext";
 /**

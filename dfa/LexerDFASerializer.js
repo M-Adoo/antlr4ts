@@ -30,7 +30,7 @@ var LexerDFASerializer = /** @class */ (function (_super) {
         return _super.call(this, dfa, VocabularyImpl.EMPTY_VOCABULARY) || this;
     }
     LexerDFASerializer.prototype.getEdgeLabel = function (i) {
-        return "'" + String.fromCharCode(i) + "'";
+        return "'" + String.fromCodePoint(i) + "'";
     };
     __decorate([
         Override,

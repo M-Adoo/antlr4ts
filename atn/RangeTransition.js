@@ -50,7 +50,7 @@ var RangeTransition = /** @class */ (function (_super) {
         return symbol >= this.from && symbol <= this.to;
     };
     RangeTransition.prototype.toString = function () {
-        return "'" + String.fromCharCode(this.from) + "'..'" + String.fromCharCode(this.to) + "'";
+        return "'" + String.fromCodePoint(this.from) + "'..'" + String.fromCodePoint(this.to) + "'";
     };
     __decorate([
         Override

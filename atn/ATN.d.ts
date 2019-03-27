@@ -118,6 +118,3 @@ export declare class ATN {
      */
     getExpectedTokens(stateNumber: number, context: RuleContext | undefined): IntervalSet;
 }
-export declare namespace ATN {
-    const INVALID_ALT_NUMBER: number;
-}

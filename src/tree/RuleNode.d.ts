@@ -10,6 +10,7 @@ import { Interval } from "../misc/Interval";
 export declare abstract class RuleNode implements ParseTree {
     readonly abstract ruleContext: RuleContext;
     readonly abstract parent: RuleNode | undefined;
+    abstract setParent(parent: RuleContext): void;
     abstract getChild(i: number): ParseTree;
     abstract accept<T>(visitor: ParseTreeVisitor<T>): T;
     readonly abstract text: string;

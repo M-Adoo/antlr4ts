@@ -98,8 +98,8 @@ var ListTokenSource = /** @class */ (function () {
                         start = previousStop + 1;
                     }
                 }
-                var stop_1 = Math.max(-1, start - 1);
-                this.eofToken = this._factory.create({ source: this, stream: this.inputStream }, Token.EOF, "EOF", Token.DEFAULT_CHANNEL, start, stop_1, this.line, this.charPositionInLine);
+                var stop = Math.max(-1, start - 1);
+                this.eofToken = this._factory.create({ source: this, stream: this.inputStream }, Token.EOF, "EOF", Token.DEFAULT_CHANNEL, start, stop, this.line, this.charPositionInLine);
             }
             return this.eofToken;
         }

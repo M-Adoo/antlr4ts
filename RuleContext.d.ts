@@ -72,6 +72,8 @@ export declare class RuleContext extends RuleNode {
     readonly sourceInterval: Interval;
     readonly ruleContext: RuleContext;
     readonly parent: RuleContext | undefined;
+    /** @since 4.7. {@see ParseTree#setParent} comment */
+    setParent(parent: RuleContext): void;
     readonly payload: RuleContext;
     /** Return the combined text of all child nodes. This method only considers
      *  tokens which have been added to the parse tree.

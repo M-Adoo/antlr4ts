@@ -73,7 +73,8 @@ var ParserRuleContext = /** @class */ (function (_super) {
     };
     /**
      * COPY a ctx (I'm deliberately not using copy constructor) to avoid
-     * confusion with creating node with parent. Does not copy children.
+     * confusion with creating node with parent. Does not copy children
+     * (except error leaves).
      *
      * This is used in the generated parser code to flip a generic XContext
      * node for rule X to a YContext for alt label Y. In that sense, it is not
@@ -96,8 +97,7 @@ var ParserRuleContext = /** @class */ (function (_super) {
                 for (var _a = __values(ctx.children), _b = _a.next(); !_b.done; _b = _a.next()) {
                     var child = _b.value;
                     if (child instanceof ErrorNode) {
-                        this.children.push(child);
-                        child._parent = this;
+                        this.addChild(child);
                     }
                 }
             }
@@ -118,27 +118,65 @@ var ParserRuleContext = /** @class */ (function (_super) {
     ParserRuleContext.prototype.exitRule = function (listener) {
         // intentionally empty
     };
-    ParserRuleContext.prototype.addChild = function (t) {
-        var result;
-        if (t instanceof TerminalNode) {
-            // Does not set parent link
-        }
-        else if (t instanceof RuleContext) {
-            // Does not set parent link
-        }
-        else {
-            t = new TerminalNode(t);
-            t._parent = this;
-            result = t;
-        }
+    /** Add a parse tree node to this as a child.  Works for
+     *  internal and leaf nodes. Does not set parent link;
+     *  other add methods must do that. Other addChild methods
+     *  call this.
+     *
+     *  We cannot set the parent pointer of the incoming node
+     *  because the existing interfaces do not have a setParent()
+     *  method and I don't want to break backward compatibility for this.
+     *
+     *  @since 4.7
+     */
+    ParserRuleContext.prototype.addAnyChild = function (t) {
         if (!this.children) {
             this.children = [t];
         }
         else {
             this.children.push(t);
         }
-        return result;
+        return t;
     };
+    ParserRuleContext.prototype.addChild = function (t) {
+        var result;
+        if (t instanceof TerminalNode) {
+            t.setParent(this);
+            this.addAnyChild(t);
+            return;
+        }
+        else if (t instanceof RuleContext) {
+            // Does not set parent link
+            this.addAnyChild(t);
+            return;
+        }
+        else {
+            // Deprecated code path
+            t = new TerminalNode(t);
+            this.addAnyChild(t);
+            t.setParent(this);
+            return t;
+        }
+    };
+    ParserRuleContext.prototype.addErrorNode = function (node) {
+        if (node instanceof ErrorNode) {
+            var errorNode = node;
+            errorNode.setParent(this);
+            return this.addAnyChild(errorNode);
+        }
+        else {
+            // deprecated path
+            var badToken = node;
+            var t = new ErrorNode(badToken);
+            this.addAnyChild(t);
+            t.setParent(this);
+            return t;
+        }
+    };
+    //	public void trace(int s) {
+    //		if ( states==null ) states = new ArrayList<Integer>();
+    //		states.add(s);
+    //	}
     /** Used by enterOuterAlt to toss out a RuleContext previously added as
      *  we entered a rule. If we have # label, we will need to remove
      *  generic ruleContext object.
@@ -147,16 +185,6 @@ var ParserRuleContext = /** @class */ (function (_super) {
         if (this.children) {
             this.children.pop();
         }
-    };
-    //	public void trace(int s) {
-    //		if ( states==null ) states = new ArrayList<Integer>();
-    //		states.add(s);
-    //	}
-    ParserRuleContext.prototype.addErrorNode = function (badToken) {
-        var t = new ErrorNode(badToken);
-        this.addChild(t);
-        t._parent = this;
-        return t;
     };
     Object.defineProperty(ParserRuleContext.prototype, "parent", {
         get: function () {

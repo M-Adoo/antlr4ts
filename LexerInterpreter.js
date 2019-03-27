@@ -27,7 +27,7 @@ import { NotNull } from "./Decorators";
 import { Override } from "./Decorators";
 var LexerInterpreter = /** @class */ (function (_super) {
     __extends(LexerInterpreter, _super);
-    function LexerInterpreter(grammarFileName, vocabulary, modeNames, ruleNames, atn, input) {
+    function LexerInterpreter(grammarFileName, vocabulary, ruleNames, channelNames, modeNames, atn, input) {
         var _this = _super.call(this, input) || this;
         if (atn.grammarType !== 0 /* LEXER */) {
             throw new Error("IllegalArgumentException: The ATN must be a lexer ATN.");
@@ -35,6 +35,7 @@ var LexerInterpreter = /** @class */ (function (_super) {
         _this._grammarFileName = grammarFileName;
         _this._atn = atn;
         _this._ruleNames = ruleNames.slice(0);
+        _this._channelNames = channelNames.slice(0);
         _this._modeNames = modeNames.slice(0);
         _this._vocabulary = vocabulary;
         _this._interp = new LexerATNSimulator(atn, _this);
@@ -57,6 +58,13 @@ var LexerInterpreter = /** @class */ (function (_super) {
     Object.defineProperty(LexerInterpreter.prototype, "ruleNames", {
         get: function () {
             return this._ruleNames;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(LexerInterpreter.prototype, "channelNames", {
+        get: function () {
+            return this._channelNames;
         },
         enumerable: true,
         configurable: true
@@ -87,6 +95,9 @@ var LexerInterpreter = /** @class */ (function (_super) {
     __decorate([
         Override
     ], LexerInterpreter.prototype, "ruleNames", null);
+    __decorate([
+        Override
+    ], LexerInterpreter.prototype, "channelNames", null);
     __decorate([
         Override
     ], LexerInterpreter.prototype, "modeNames", null);

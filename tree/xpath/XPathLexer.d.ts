@@ -12,6 +12,7 @@ export declare class XPathLexer extends Lexer {
     static readonly BANG: number;
     static readonly ID: number;
     static readonly STRING: number;
+    static readonly channelNames: string[];
     static readonly modeNames: string[];
     static readonly ruleNames: string[];
     private static readonly _LITERAL_NAMES;
@@ -22,9 +23,13 @@ export declare class XPathLexer extends Lexer {
     readonly grammarFileName: string;
     readonly ruleNames: string[];
     readonly serializedATN: string;
+    readonly channelNames: string[];
     readonly modeNames: string[];
     action(_localctx: RuleContext, ruleIndex: number, actionIndex: number): void;
     private ID_action(_localctx, actionIndex);
+    private static readonly _serializedATNSegments;
+    private static readonly _serializedATNSegment0;
+    private static readonly _serializedATNSegment1;
     static readonly _serializedATN: string;
     static __ATN: ATN;
     static readonly _ATN: ATN;

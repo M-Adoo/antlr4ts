@@ -4,9 +4,11 @@
  */
 import { RecognitionException } from "./RecognitionException";
 import { Parser } from "./Parser";
+import { ParserRuleContext } from "./ParserRuleContext";
 /** This signifies any kind of mismatched input exceptions such as
  *  when the current input does not match the expected token.
  */
 export declare class InputMismatchException extends RecognitionException {
     constructor(recognizer: Parser);
+    constructor(recognizer: Parser, state: number, context: ParserRuleContext);
 }

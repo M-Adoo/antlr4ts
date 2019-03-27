@@ -72,7 +72,8 @@ export declare class ParserRuleContext extends RuleContext {
     static emptyContext(): ParserRuleContext;
     /**
      * COPY a ctx (I'm deliberately not using copy constructor) to avoid
-     * confusion with creating node with parent. Does not copy children.
+     * confusion with creating node with parent. Does not copy children
+     * (except error leaves).
      *
      * This is used in the generated parser code to flip a generic XContext
      * node for rule X to a YContext for alt label Y. In that sense, it is not
@@ -85,15 +86,49 @@ export declare class ParserRuleContext extends RuleContext {
     copyFrom(ctx: ParserRuleContext): void;
     enterRule(listener: ParseTreeListener): void;
     exitRule(listener: ParseTreeListener): void;
+    /** Add a parse tree node to this as a child.  Works for
+     *  internal and leaf nodes. Does not set parent link;
+     *  other add methods must do that. Other addChild methods
+     *  call this.
+     *
+     *  We cannot set the parent pointer of the incoming node
+     *  because the existing interfaces do not have a setParent()
+     *  method and I don't want to break backward compatibility for this.
+     *
+     *  @since 4.7
+     */
+    addAnyChild<T extends ParseTree>(t: T): T;
+    /** Add a token leaf node child and force its parent to be this node. */
     addChild(t: TerminalNode): void;
     addChild(ruleInvocation: RuleContext): void;
+    /**
+     * Add a child to this node based upon matchedToken. It
+     * creates a TerminalNodeImpl rather than using
+     * {@link Parser#createTerminalNode(ParserRuleContext, Token)}. I'm leaving this
+     * in for compatibility but the parser doesn't use this anymore.
+     *
+     * @deprecated Use another overload instead.
+     */
     addChild(matchedToken: Token): TerminalNode;
+    /** Add an error node child and force its parent to be this node.
+     *
+     * @since 4.7
+     */
+    addErrorNode(errorNode: ErrorNode): ErrorNode;
+    /**
+     * Add a child to this node based upon badToken. It
+     * creates a ErrorNode rather than using
+     * {@link Parser#createErrorNode(ParserRuleContext, Token)}. I'm leaving this
+     * in for compatibility but the parser doesn't use this anymore.
+     *
+     * @deprecated Use another overload instead.
+     */
+    addErrorNode(badToken: Token): ErrorNode;
     /** Used by enterOuterAlt to toss out a RuleContext previously added as
      *  we entered a rule. If we have # label, we will need to remove
      *  generic ruleContext object.
      */
     removeLastChild(): void;
-    addErrorNode(badToken: Token): ErrorNode;
     readonly parent: ParserRuleContext | undefined;
     getChild(i: number): ParseTree;
     getChild<T extends ParseTree>(i: number, ctxType: {

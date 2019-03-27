@@ -33,7 +33,7 @@ var __values = (this && this.__values) || function (o) {
 };
 // ConvertTo-TS run at 2016-10-04T11:26:29.1083066-07:00
 import { AcceptStateInfo } from "../dfa/AcceptStateInfo";
-import { ATN } from "./ATN";
+import { INVALID_ALT_NUMBER } from "./Constant";
 import { ATNConfig } from "./ATNConfig";
 import { ATNConfigSet } from "./ATNConfigSet";
 import { ATNSimulator } from "./ATNSimulator";
@@ -48,7 +48,7 @@ import { OrderedATNConfigSet } from "./OrderedATNConfigSet";
 import { PredictionContext } from "./PredictionContext";
 import { RuleStopState } from "./RuleStopState";
 import { Token } from "../Token";
-// import * as assert from "assert";
+import assert from "assert";
 /** "dup" of ParserInterpreter */
 var LexerATNSimulator = /** @class */ (function (_super) {
     __extends(LexerATNSimulator, _super);
@@ -257,7 +257,7 @@ var LexerATNSimulator = /** @class */ (function (_super) {
     LexerATNSimulator.prototype.getReachableConfigSet = function (input, closure, reach, t) {
         // this is used to skip processing for configs which have a lower priority
         // than a config that already reached an accept state for the same rule
-        var skipAlt = ATN.INVALID_ALT_NUMBER;
+        var skipAlt = INVALID_ALT_NUMBER;
         try {
             for (var closure_1 = __values(closure), closure_1_1 = closure_1.next(); !closure_1_1.done; closure_1_1 = closure_1.next()) {
                 var c = closure_1_1.value;
@@ -280,7 +280,7 @@ var LexerATNSimulator = /** @class */ (function (_super) {
                             config = c.transform(target, true, lexerActionExecutor);
                         }
                         else {
-                            // assert(c.lexerActionExecutor == null);
+                            assert(c.lexerActionExecutor == null);
                             config = c.transform(target, true);
                         }
                         var treatEofAsEpsilon = t === IntStream.EOF;
@@ -574,7 +574,7 @@ var LexerATNSimulator = /** @class */ (function (_super) {
         /* the lexer evaluates predicates on-the-fly; by this point configs
          * should not contain any configurations with unevaluated predicates.
          */
-        // assert(!configs.hasSemanticContext);
+        assert(!configs.hasSemanticContext);
         var proposed = new DFAState(configs);
         var existing = this.atn.modeToDFA[this.mode].states.get(proposed);
         if (existing != null) {

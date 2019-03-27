@@ -49,7 +49,7 @@ var __values = (this && this.__values) || function (o) {
     };
 };
 // ConvertTo-TS run at 2016-10-03T02:09:41.7434086-07:00
-// import * as assert from "assert";
+import assert from "assert";
 import { DefaultEqualityComparator } from "./DefaultEqualityComparator";
 import { NotNull, Nullable, Override, SuppressWarnings } from "../Decorators";
 import { MurmurHash } from "./MurmurHash";
@@ -251,8 +251,8 @@ var Array2DHashSet = /** @class */ (function () {
             }
             finally { if (e_6) throw e_6.error; }
         }
+        assert(this.n === oldSize);
         var e_6, _b, e_5, _a;
-        // assert(this.n === oldSize);
     };
     Array2DHashSet.prototype.add = function (t) {
         var existing = this.getOrAdd(t);

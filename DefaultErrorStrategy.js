@@ -11,6 +11,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+import { ATNState } from "./atn/ATNState";
 import { ATNStateType } from "./atn/ATNStateType";
 import { FailedPredicateException } from "./FailedPredicateException";
 import { InputMismatchException } from "./InputMismatchException";
@@ -40,6 +41,10 @@ var DefaultErrorStrategy = /** @class */ (function () {
          *  one token/tree node is consumed for two errors.
          */
         this.lastErrorIndex = -1;
+        /**
+         * @see #nextTokensContext
+         */
+        this.nextTokensState = ATNState.INVALID_STATE_NUMBER;
     }
     /**
      * {@inheritDoc}
@@ -222,7 +227,19 @@ var DefaultErrorStrategy = /** @class */ (function () {
         var la = tokens.LA(1);
         // try cheaper subset first; might get lucky. seems to shave a wee bit off
         var nextTokens = recognizer.atn.nextTokens(s);
-        if (nextTokens.contains(Token.EPSILON) || nextTokens.contains(la)) {
+        if (nextTokens.contains(la)) {
+            // We are sure the token matches
+            this.nextTokensContext = undefined;
+            this.nextTokensState = ATNState.INVALID_STATE_NUMBER;
+            return;
+        }
+        if (nextTokens.contains(Token.EPSILON)) {
+            if (this.nextTokensContext === undefined) {
+                // It's possible the next token won't match; information tracked
+                // by sync is restricted for performance.
+                this.nextTokensContext = recognizer.context;
+                this.nextTokensState = recognizer.state;
+            }
             return;
         }
         switch (s.stateType) {
@@ -426,7 +443,12 @@ var DefaultErrorStrategy = /** @class */ (function () {
             return this.getMissingSymbol(recognizer);
         }
         // even that didn't work; must throw the exception
-        throw new InputMismatchException(recognizer);
+        if (this.nextTokensContext === undefined) {
+            throw new InputMismatchException(recognizer);
+        }
+        else {
+            throw new InputMismatchException(recognizer, this.nextTokensState, this.nextTokensContext);
+        }
     };
     /**
      * This method implements the single-token insertion inline error recovery
@@ -521,7 +543,11 @@ var DefaultErrorStrategy = /** @class */ (function () {
     DefaultErrorStrategy.prototype.getMissingSymbol = function (recognizer) {
         var currentSymbol = recognizer.currentToken;
         var expecting = this.getExpectedTokens(recognizer);
-        var expectedTokenType = expecting.minElement; // get any element
+        var expectedTokenType = Token.INVALID_TYPE;
+        if (!expecting.isNil) {
+            // get any element
+            expectedTokenType = expecting.minElement;
+        }
         var tokenText;
         if (expectedTokenType === Token.EOF) {
             tokenText = "<missing EOF>";

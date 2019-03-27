@@ -11,12 +11,12 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { ATN } from "../atn/ATN";
+import { INVALID_ALT_NUMBER } from "../atn/Constant";
 import { BitSet } from "../misc/BitSet";
 import { MurmurHash } from "../misc/MurmurHash";
 import { NotNull, Override } from "../Decorators";
 import { PredictionContext } from "../atn/PredictionContext";
-// import * as assert from "assert";
+import assert from "assert";
 /** A DFA state represents a set of possible ATN configurations.
  *  As Aho, Sethi, Ullman p. 117 says "The DFA uses its state
  *  to keep track of all possible states the ATN can be in after
@@ -67,11 +67,11 @@ var DFAState = /** @class */ (function () {
         return this.contextSymbols.get(symbol);
     };
     DFAState.prototype.setContextSymbol = function (symbol) {
-        // assert(this.isContextSensitive);
+        assert(this.isContextSensitive);
         this.contextSymbols.set(symbol);
     };
     DFAState.prototype.setContextSensitive = function (atn) {
-        // assert(!this.configs.isOutermostConfigSet);
+        assert(!this.configs.isOutermostConfigSet);
         if (this.isContextSensitive) {
             return;
         }
@@ -99,7 +99,7 @@ var DFAState = /** @class */ (function () {
     Object.defineProperty(DFAState.prototype, "prediction", {
         get: function () {
             if (!this._acceptStateInfo) {
-                return ATN.INVALID_ALT_NUMBER;
+                return INVALID_ALT_NUMBER;
             }
             return this._acceptStateInfo.prediction;
         },

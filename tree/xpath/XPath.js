@@ -13,7 +13,7 @@ var __values = (this && this.__values) || function (o) {
     };
 };
 // ConvertTo-TS run at 2016-10-04T11:26:46.4373888-07:00
-import { ANTLRInputStream } from "../../ANTLRInputStream";
+import { CharStreams } from "../../CharStreams";
 import { CommonTokenStream } from "../../CommonTokenStream";
 import { LexerNoViableAltException } from "../../LexerNoViableAltException";
 import { ParserRuleContext } from "../../ParserRuleContext";
@@ -72,8 +72,7 @@ var XPath = /** @class */ (function () {
     }
     // TODO: check for invalid token/rule names, bad syntax
     XPath.prototype.split = function (path) {
-        var input = new ANTLRInputStream(path);
-        var lexer = new XPathLexer(input);
+        var lexer = new XPathLexer(CharStreams.fromString(path));
         lexer.recover = function (e) { throw e; };
         lexer.removeErrorListeners();
         lexer.addErrorListener(new XPathLexerErrorListener());
@@ -208,8 +207,6 @@ var XPath = /** @class */ (function () {
         return work;
         var e_1, _a;
     };
-    XPath.WILDCARD = "*"; // word not operator/separator
-    XPath.NOT = "!"; // word for invert operator
     return XPath;
 }());
 export { XPath };

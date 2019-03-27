@@ -97,11 +97,10 @@ export declare class BufferedTokenStream implements TokenStream {
     protected adjustSeekIndex(i: number): number;
     protected lazyInit(): void;
     protected setup(): void;
-    /** Given a start and stop index, return a `List` of all tokens in
-     *  the token type `BitSet`.  Return an empty array if no tokens were found.  This
-     *  method looks at both on and off channel tokens.
-     */
-    getTokens(start?: number, stop?: number, types?: Set<number> | number): Token[];
+    getTokens(): Token[];
+    getTokens(start: number, stop: number): Token[];
+    getTokens(start: number, stop: number, types: Set<number>): Token[];
+    getTokens(start: number, stop: number, ttype: number): Token[];
     /**
      * Given a starting index, return the index of the next token on channel.
      * Return `i` if `tokens[i]` is on channel. Return the index of

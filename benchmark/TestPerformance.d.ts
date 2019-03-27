@@ -8,6 +8,8 @@ import { Parser } from "../src/Parser";
 import { ParserRuleContext } from "../src/ParserRuleContext";
 import { ParseTree } from "../src/tree/ParseTree";
 import { ParseTreeListener } from "../src/tree/ParseTreeListener";
+import { Stopwatch } from "./Stopwatch";
+import { TimeSpan } from "./TimeSpan";
 import { Token } from "../src/Token";
 import { TokenStream } from "../src/TokenStream";
 import { JavaLexer as JavaLexer } from "./gen/std/JavaLexer";
@@ -18,23 +20,6 @@ import { JavaParser as JavaParser } from "./gen/std/JavaParser";
 import { JavaParser as JavaParserAtn } from "./gen/std-atn/JavaParser";
 import { JavaLRParser as JavaLRParser } from "./gen/lr/JavaLRParser";
 import { JavaLRParser as JavaLRParserAtn } from "./gen/lr-atn/JavaLRParser";
-export declare class TimeSpan {
-    readonly seconds: number;
-    readonly nanos: number;
-    constructor(seconds: number, nanos: number);
-    readonly totalMilliseconds: number;
-}
-export declare class Stopwatch {
-    static readonly MILLIS_PER_SECOND: number;
-    static readonly NANOS_PER_SECOND: number;
-    static readonly NANOS_PER_MILLISECOND: number;
-    private _elapsed;
-    private _start?;
-    static startNew(): Stopwatch;
-    start(): void;
-    elapsed(): TimeSpan;
-    elapsedMillis(): number;
-}
 export declare class MurmurHashChecksum {
     private value;
     private count;
@@ -367,4 +352,5 @@ export declare class InputDescriptor {
     private inputStream?;
     constructor(source: string);
     getInputStream(): CharStream;
+    private bufferFromFileName(source, encoding);
 }

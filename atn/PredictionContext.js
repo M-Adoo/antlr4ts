@@ -37,8 +37,8 @@ import { Array2DHashSet } from "../misc/Array2DHashSet";
 import { Arrays } from "../misc/Arrays";
 import { MurmurHash } from "../misc/MurmurHash";
 import { NotNull, Override } from "../Decorators";
-import { PredictionContextCache } from "./PredictionContextCache";
-// import * as assert from "assert";
+import { ObjectEqualityComparator } from "../misc/ObjectEqualityComparator";
+import assert from "assert";
 var INITIAL_HASH = 1;
 var PredictionContext = /** @class */ (function () {
     function PredictionContext(cachedHashCode) {
@@ -60,8 +60,8 @@ var PredictionContext = /** @class */ (function () {
         var hash = MurmurHash.initialize(INITIAL_HASH);
         try {
             for (var parents_1 = __values(parents), parents_1_1 = parents_1.next(); !parents_1_1.done; parents_1_1 = parents_1.next()) {
-                var parent_1 = parents_1_1.value;
-                hash = MurmurHash.update(hash, parent_1);
+                var parent = parents_1_1.value;
+                hash = MurmurHash.update(hash, parent);
             }
         }
         catch (e_1_1) { e_1 = { error: e_1_1 }; }
@@ -158,7 +158,7 @@ var PredictionContext = /** @class */ (function () {
                 leftIndex++;
             }
             else {
-                // assert(context1.getReturnState(rightIndex) < context0.getReturnState(leftIndex));
+                assert(context1.getReturnState(rightIndex) < context0.getReturnState(leftIndex));
                 parentsList[count] = context1.getParent(rightIndex);
                 returnStatesList[count] = context1.getReturnState(rightIndex);
                 canReturnLeft = false;
@@ -220,8 +220,8 @@ var PredictionContext = /** @class */ (function () {
         var changed = false;
         var parents = new Array(context.size);
         for (var i = 0; i < parents.length; i++) {
-            var parent_2 = PredictionContext.getCachedContext(context.getParent(i), contextCache, visited);
-            if (changed || parent_2 !== context.getParent(i)) {
+            var parent = PredictionContext.getCachedContext(context.getParent(i), contextCache, visited);
+            if (changed || parent !== context.getParent(i)) {
                 if (!changed) {
                     parents = new Array(context.size);
                     for (var j = 0; j < context.size; j++) {
@@ -229,7 +229,7 @@ var PredictionContext = /** @class */ (function () {
                     }
                     changed = true;
                 }
-                parents[i] = parent_2;
+                parents[i] = parent;
             }
         }
         if (!changed) {
@@ -436,8 +436,8 @@ var ArrayPredictionContext = /** @class */ (function (_super) {
     __extends(ArrayPredictionContext, _super);
     function ArrayPredictionContext(parents, returnStates, hashCode) {
         var _this = _super.call(this, hashCode || PredictionContext.calculateHashCode(parents, returnStates)) || this;
-        // assert(parents.length === returnStates.length);
-        // assert(returnStates.length > 1 || returnStates[0] !== PredictionContext.EMPTY_FULL_STATE_KEY, "Should be using PredictionContext.EMPTY instead.");
+        assert(parents.length === returnStates.length);
+        assert(returnStates.length > 1 || returnStates[0] !== PredictionContext.EMPTY_FULL_STATE_KEY, "Should be using PredictionContext.EMPTY instead.");
         _this.parents = parents;
         _this.returnStates = returnStates;
         return _this;
@@ -533,7 +533,7 @@ var ArrayPredictionContext = /** @class */ (function (_super) {
                     result = new SingletonPredictionContext(updatedParents[0], updatedReturnStates[0]);
                 }
                 else {
-                    // assert(updatedParents.length > 1);
+                    assert(updatedParents.length > 1);
                     result = new ArrayPredictionContext(updatedParents, updatedReturnStates);
                 }
                 if (context.hasEmpty) {
@@ -783,4 +783,136 @@ export { SingletonPredictionContext };
     }());
     PredictionContext.IdentityEqualityComparator = IdentityEqualityComparator;
 })(PredictionContext || (PredictionContext = {}));
+/** Used to cache {@link PredictionContext} objects. Its used for the shared
+ *  context cash associated with contexts in DFA states. This cache
+ *  can be used for both lexers and parsers.
+ *
+ * @author Sam Harwell
+ */
+var PredictionContextCache = /** @class */ (function () {
+    function PredictionContextCache(enableCache) {
+        if (enableCache === void 0) { enableCache = true; }
+        this.contexts = new Array2DHashMap(ObjectEqualityComparator.INSTANCE);
+        this.childContexts = new Array2DHashMap(ObjectEqualityComparator.INSTANCE);
+        this.joinContexts = new Array2DHashMap(ObjectEqualityComparator.INSTANCE);
+        this.enableCache = enableCache;
+    }
+    PredictionContextCache.prototype.getAsCached = function (context) {
+        if (!this.enableCache) {
+            return context;
+        }
+        var result = this.contexts.get(context);
+        if (!result) {
+            result = context;
+            this.contexts.put(context, context);
+        }
+        return result;
+    };
+    PredictionContextCache.prototype.getChild = function (context, invokingState) {
+        if (!this.enableCache) {
+            return context.getChild(invokingState);
+        }
+        var operands = new PredictionContextCache.PredictionContextAndInt(context, invokingState);
+        var result = this.childContexts.get(operands);
+        if (!result) {
+            result = context.getChild(invokingState);
+            result = this.getAsCached(result);
+            this.childContexts.put(operands, result);
+        }
+        return result;
+    };
+    PredictionContextCache.prototype.join = function (x, y) {
+        if (!this.enableCache) {
+            return PredictionContext.join(x, y, this);
+        }
+        var operands = new PredictionContextCache.IdentityCommutativePredictionContextOperands(x, y);
+        var result = this.joinContexts.get(operands);
+        if (result) {
+            return result;
+        }
+        result = PredictionContext.join(x, y, this);
+        result = this.getAsCached(result);
+        this.joinContexts.put(operands, result);
+        return result;
+    };
+    PredictionContextCache.UNCACHED = new PredictionContextCache(false);
+    return PredictionContextCache;
+}());
+export { PredictionContextCache };
+(function (PredictionContextCache) {
+    var PredictionContextAndInt = /** @class */ (function () {
+        function PredictionContextAndInt(obj, value) {
+            this.obj = obj;
+            this.value = value;
+        }
+        PredictionContextAndInt.prototype.equals = function (obj) {
+            if (!(obj instanceof PredictionContextAndInt)) {
+                return false;
+            }
+            else if (obj === this) {
+                return true;
+            }
+            var other = obj;
+            return this.value === other.value
+                && (this.obj === other.obj || (this.obj != null && this.obj.equals(other.obj)));
+        };
+        PredictionContextAndInt.prototype.hashCode = function () {
+            var hashCode = 5;
+            hashCode = 7 * hashCode + (this.obj != null ? this.obj.hashCode() : 0);
+            hashCode = 7 * hashCode + this.value;
+            return hashCode;
+        };
+        __decorate([
+            Override
+        ], PredictionContextAndInt.prototype, "equals", null);
+        __decorate([
+            Override
+        ], PredictionContextAndInt.prototype, "hashCode", null);
+        return PredictionContextAndInt;
+    }());
+    PredictionContextCache.PredictionContextAndInt = PredictionContextAndInt;
+    var IdentityCommutativePredictionContextOperands = /** @class */ (function () {
+        function IdentityCommutativePredictionContextOperands(x, y) {
+            assert(x != null);
+            assert(y != null);
+            this._x = x;
+            this._y = y;
+        }
+        Object.defineProperty(IdentityCommutativePredictionContextOperands.prototype, "x", {
+            get: function () {
+                return this._x;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(IdentityCommutativePredictionContextOperands.prototype, "y", {
+            get: function () {
+                return this._y;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        IdentityCommutativePredictionContextOperands.prototype.equals = function (o) {
+            if (!(o instanceof IdentityCommutativePredictionContextOperands)) {
+                return false;
+            }
+            else if (this === o) {
+                return true;
+            }
+            var other = o;
+            return (this._x === other._x && this._y === other._y) || (this._x === other._y && this._y === other._x);
+        };
+        IdentityCommutativePredictionContextOperands.prototype.hashCode = function () {
+            return this._x.hashCode() ^ this._y.hashCode();
+        };
+        __decorate([
+            Override
+        ], IdentityCommutativePredictionContextOperands.prototype, "equals", null);
+        __decorate([
+            Override
+        ], IdentityCommutativePredictionContextOperands.prototype, "hashCode", null);
+        return IdentityCommutativePredictionContextOperands;
+    }());
+    PredictionContextCache.IdentityCommutativePredictionContextOperands = IdentityCommutativePredictionContextOperands;
+})(PredictionContextCache || (PredictionContextCache = {}));
 //# sourceMappingURL=PredictionContext.js.map

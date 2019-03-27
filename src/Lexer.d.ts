@@ -114,6 +114,7 @@ export declare abstract class Lexer extends Recognizer<number, LexerATNSimulator
     token: Token | undefined;
     type: number;
     channel: number;
+    readonly abstract channelNames: string[];
     readonly abstract modeNames: string[];
     /** Return a list of all Token objects in input char stream.
      *  Forces load of all tokens. Does not include EOF token.

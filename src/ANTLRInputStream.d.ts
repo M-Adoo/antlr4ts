@@ -10,6 +10,8 @@ import { Interval } from "./misc/Interval";
  * `char[]` to use.
  *
  * If you need encoding, pass in stream/reader with correct encoding.
+ *
+ * @deprecated as of 4.7, please use `CharStreams` interface.
  */
 export declare class ANTLRInputStream implements CharStream {
     /** The data being scanned */

@@ -6,6 +6,7 @@ import { Interval } from "../misc/Interval";
 import { Parser } from "../Parser";
 import { ParseTree } from "./ParseTree";
 import { ParseTreeVisitor } from "./ParseTreeVisitor";
+import { RuleContext } from "../RuleContext";
 import { RuleNode } from "./RuleNode";
 import { Token } from "../Token";
 export declare class TerminalNode implements ParseTree {
@@ -15,6 +16,7 @@ export declare class TerminalNode implements ParseTree {
     getChild(i: number): never;
     readonly symbol: Token;
     readonly parent: RuleNode | undefined;
+    setParent(parent: RuleContext): void;
     readonly payload: Token;
     readonly sourceInterval: Interval;
     readonly childCount: number;

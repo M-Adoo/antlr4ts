@@ -368,7 +368,7 @@ var Lexer = /** @class */ (function (_super) {
     Lexer.MORE = -2;
     Lexer.SKIP = -3;
     Lexer.MIN_CHAR_VALUE = 0x0000;
-    Lexer.MAX_CHAR_VALUE = 0xFFFF;
+    Lexer.MAX_CHAR_VALUE = 0x10FFFF;
     __decorate([
         Override
     ], Lexer.prototype, "nextToken", null);

@@ -19,7 +19,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 // ConvertTo-TS run at 2016-10-04T11:26:57.3490837-07:00
-import { ATN } from "./atn/ATN";
+import { INVALID_ALT_NUMBER } from "./atn/Constant";
 import { Recognizer } from "./Recognizer";
 import { RuleNode } from "./tree/RuleNode";
 import { Interval } from "./misc/Interval";
@@ -124,6 +124,10 @@ var RuleContext = /** @class */ (function (_super) {
         enumerable: true,
         configurable: true
     });
+    /** @since 4.7. {@see ParseTree#setParent} comment */
+    RuleContext.prototype.setParent = function (parent) {
+        this._parent = parent;
+    };
     Object.defineProperty(RuleContext.prototype, "payload", {
         get: function () { return this; },
         enumerable: true,
@@ -165,7 +169,7 @@ var RuleContext = /** @class */ (function (_super) {
          *
          *  @since 4.5.3
          */
-        get: function () { return ATN.INVALID_ALT_NUMBER; },
+        get: function () { return INVALID_ALT_NUMBER; },
         /** Set the outer alternative number for this context node. Default
          *  implementation does nothing to avoid backing field overhead for
          *  trees that don't need it.  Create
@@ -231,6 +235,9 @@ var RuleContext = /** @class */ (function (_super) {
     __decorate([
         Override
     ], RuleContext.prototype, "parent", null);
+    __decorate([
+        Override
+    ], RuleContext.prototype, "setParent", null);
     __decorate([
         Override
     ], RuleContext.prototype, "payload", null);

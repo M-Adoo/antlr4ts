@@ -39,7 +39,7 @@ import { NotNull, Override } from "../Decorators";
 import { ObjectEqualityComparator } from "../misc/ObjectEqualityComparator";
 import { PredictionContext } from "./PredictionContext";
 import { SemanticContext } from "./SemanticContext";
-// import * as assert from "assert";
+import assert from "assert";
 /**
  * This field stores the bit mask for implementing the
  * {@link #isPrecedenceFilterSuppressed} property as a bit within the
@@ -78,7 +78,7 @@ var SUPPRESS_PRECEDENCE_FILTER = 0x80000000;
 var ATNConfig = /** @class */ (function () {
     function ATNConfig(state, altOrConfig, context) {
         if (typeof altOrConfig === "number") {
-            // assert((altOrConfig & 0xFFFFFF) === altOrConfig);
+            assert((altOrConfig & 0xFFFFFF) === altOrConfig);
             this._state = state;
             this.altAndOuterContextDepth = altOrConfig;
             this._context = context;
@@ -155,7 +155,7 @@ var ATNConfig = /** @class */ (function () {
             return (this.altAndOuterContextDepth >>> 24) & 0x7F;
         },
         set: function (outerContextDepth) {
-            // assert(outerContextDepth >= 0);
+            assert(outerContextDepth >= 0);
             // saturate at 0x7F - everything but zero/positive is only used for debug information anyway
             outerContextDepth = Math.min(outerContextDepth, 0x7F);
             this.altAndOuterContextDepth = ((outerContextDepth << 24) | (this.altAndOuterContextDepth & ~0x7F000000) >>> 0);

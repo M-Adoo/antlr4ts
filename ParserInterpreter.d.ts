@@ -2,12 +2,12 @@
  * Copyright 2016 The ANTLR Project. All rights reserved.
  * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
  */
+import { Parser } from "./Parser";
 import { ATN } from "./atn/ATN";
 import { ATNState } from "./atn/ATNState";
 import { BitSet } from "./misc/BitSet";
 import { DecisionState } from "./atn/DecisionState";
 import { InterpreterRuleContext } from "./InterpreterRuleContext";
-import { Parser } from "./Parser";
 import { ParserRuleContext } from "./ParserRuleContext";
 import { RecognitionException } from "./RecognitionException";
 import { Token } from "./Token";
