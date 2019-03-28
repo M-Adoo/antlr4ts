@@ -40,5 +40,7 @@ export * from "./TokenStreamRewriter";
 export * from "./VocabularyImpl";
 export * from "./BailErrorStrategy";
 export * from "./atn";
+export * from "./dfa";
 export * from "./misc";
+export * from "./tree";
 //# sourceMappingURL=index.js.map

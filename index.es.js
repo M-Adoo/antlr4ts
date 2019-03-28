@@ -27469,6 +27469,11 @@ var TransitionType;
  * Copyright 2016 The ANTLR Project. All rights reserved.
  * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
  */
+
+/*!
+ * Copyright 2016 The ANTLR Project. All rights reserved.
+ * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
+ */
 // ConvertTo-TS run at 2016-10-04T11:26:39.6568608-07:00
 /**
  * Validates that an argument is not `null` or `undefined`.
@@ -27493,6 +27498,269 @@ function notNull(parameterName, value) {
  * Copyright 2016 The ANTLR Project. All rights reserved.
  * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
  */
+var AbstractParseTreeVisitor = /** @class */ (function () {
+    function AbstractParseTreeVisitor() {
+    }
+    /**
+     * {@inheritDoc}
+     *
+     * The default implementation calls {@link ParseTree#accept} on the
+     * specified tree.
+     */
+    AbstractParseTreeVisitor.prototype.visit = function (tree) {
+        return tree.accept(this);
+    };
+    /**
+     * {@inheritDoc}
+     *
+     * The default implementation initializes the aggregate result to
+     * {@link #defaultResult defaultResult()}. Before visiting each child, it
+     * calls {@link #shouldVisitNextChild shouldVisitNextChild}; if the result
+     * is `false` no more children are visited and the current aggregate
+     * result is returned. After visiting a child, the aggregate result is
+     * updated by calling {@link #aggregateResult aggregateResult} with the
+     * previous aggregate result and the result of visiting the child.
+     *
+     * The default implementation is not safe for use in visitors that modify
+     * the tree structure. Visitors that modify the tree should override this
+     * method to behave properly in respect to the specific algorithm in use.
+     */
+    AbstractParseTreeVisitor.prototype.visitChildren = function (node) {
+        var result = this.defaultResult();
+        var n = node.childCount;
+        for (var i = 0; i < n; i++) {
+            if (!this.shouldVisitNextChild(node, result)) {
+                break;
+            }
+            var c = node.getChild(i);
+            var childResult = c.accept(this);
+            result = this.aggregateResult(result, childResult);
+        }
+        return result;
+    };
+    /**
+     * {@inheritDoc}
+     *
+     * The default implementation returns the result of
+     * {@link #defaultResult defaultResult}.
+     */
+    AbstractParseTreeVisitor.prototype.visitTerminal = function (node) {
+        return this.defaultResult();
+    };
+    /**
+     * {@inheritDoc}
+     *
+     * The default implementation returns the result of
+     * {@link #defaultResult defaultResult}.
+     */
+    AbstractParseTreeVisitor.prototype.visitErrorNode = function (node) {
+        return this.defaultResult();
+    };
+    /**
+     * Aggregates the results of visiting multiple children of a node. After
+     * either all children are visited or {@link #shouldVisitNextChild} returns
+     * `false`, the aggregate value is returned as the result of
+     * {@link #visitChildren}.
+     *
+     * The default implementation returns `nextResult`, meaning
+     * {@link #visitChildren} will return the result of the last child visited
+     * (or return the initial value if the node has no children).
+     *
+     * @param aggregate The previous aggregate value. In the default
+     * implementation, the aggregate value is initialized to
+     * {@link #defaultResult}, which is passed as the `aggregate` argument
+     * to this method after the first child node is visited.
+     * @param nextResult The result of the immediately preceeding call to visit
+     * a child node.
+     *
+     * @returns The updated aggregate result.
+     */
+    AbstractParseTreeVisitor.prototype.aggregateResult = function (aggregate, nextResult) {
+        return nextResult;
+    };
+    /**
+     * This method is called after visiting each child in
+     * {@link #visitChildren}. This method is first called before the first
+     * child is visited; at that point `currentResult` will be the initial
+     * value (in the default implementation, the initial value is returned by a
+     * call to {@link #defaultResult}. This method is not called after the last
+     * child is visited.
+     *
+     * The default implementation always returns `true`, indicating that
+     * `visitChildren` should only return after all children are visited.
+     * One reason to override this method is to provide a "short circuit"
+     * evaluation option for situations where the result of visiting a single
+     * child has the potential to determine the result of the visit operation as
+     * a whole.
+     *
+     * @param node The {@link RuleNode} whose children are currently being
+     * visited.
+     * @param currentResult The current aggregate result of the children visited
+     * to the current point.
+     *
+     * @returns `true` to continue visiting children. Otherwise return
+     * `false` to stop visiting children and immediately return the
+     * current aggregate result from {@link #visitChildren}.
+     */
+    AbstractParseTreeVisitor.prototype.shouldVisitNextChild = function (node, currentResult) {
+        return true;
+    };
+    __decorate([
+        Override,
+        __param(0, NotNull)
+    ], AbstractParseTreeVisitor.prototype, "visit", null);
+    __decorate([
+        Override,
+        __param(0, NotNull)
+    ], AbstractParseTreeVisitor.prototype, "visitChildren", null);
+    __decorate([
+        Override,
+        __param(0, NotNull)
+    ], AbstractParseTreeVisitor.prototype, "visitTerminal", null);
+    __decorate([
+        Override,
+        __param(0, NotNull)
+    ], AbstractParseTreeVisitor.prototype, "visitErrorNode", null);
+    __decorate([
+        __param(0, NotNull)
+    ], AbstractParseTreeVisitor.prototype, "shouldVisitNextChild", null);
+    return AbstractParseTreeVisitor;
+}());
 
-export { ANTLRInputStream, ATN, ATNConfig, ATNConfigSet, ATNDeserializationOptions, ATNDeserializer, ATNSimulator, ATNState, ATNStateType, ATNType, AbstractPredicateTransition, ActionTransition, AmbiguityInfo, Array2DHashMap, Array2DHashSet, ArrayEqualityComparator, Arrays, AtomTransition, BailErrorStrategy, BasicBlockStartState, BasicState, BitSet, BlockEndState, BlockStartState, BufferedTokenStream, CharStreams, CodePointBuffer, CodePointCharStream, CommonToken, CommonTokenFactory, CommonTokenStream, ConflictInfo, ConsoleErrorListener, ContextSensitivityInfo, DecisionEventInfo, DecisionInfo, DecisionState, DefaultEqualityComparator, DefaultErrorStrategy, Dependents, DiagnosticErrorListener, EpsilonTransition, ErrorInfo, FailedPredicateException, INVALID_ALT_NUMBER, InputMismatchException, IntStream, IntegerList, IntegerStack, InterpreterRuleContext, Interval, IntervalSet, InvalidState, LL1Analyzer, Lexer, LexerATNSimulator, LexerActionExecutor, LexerActionType, LexerChannelAction, LexerCustomAction, LexerIndexedCustomAction, LexerInterpreter, LexerModeAction, LexerMoreAction, LexerNoViableAltException, LexerPopModeAction, LexerPushModeAction, LexerSkipAction, LexerTypeAction, ListTokenSource, LookaheadEventInfo, LoopEndState, MultiMap, MurmurHash, NoViableAltException, NotSetTransition, ObjectEqualityComparator, OrderedATNConfigSet, ParseCancellationException, ParseInfo, Parser, ParserATNSimulator, ParserInterpreter, ParserRuleContext, PlusBlockStartState, PlusLoopbackState, PrecedencePredicateTransition, PredicateEvalInfo, PredicateTransition, PredictionContext, PredictionContextCache, PredictionMode, ProfilingATNSimulator, ProxyErrorListener, ProxyParserErrorListener, RangeTransition, RecognitionException, Recognizer, RewriteOperation, RuleContext, RuleContextWithAltNum, RuleDependency, RuleStartState, RuleStopState, RuleTransition, RuleVersion, SemanticContext, SetTransition, SimulatorState, SingletonPredictionContext, StarBlockStartState, StarLoopEntryState, StarLoopbackState, Token, TokenStreamRewriter, TokensStartState, Transition, TransitionType, UUID, VocabularyImpl, WildcardTransition, createWithCodePoint, createWithCodePointRange, equals, escapeWhitespace, isHighSurrogate, isLowSurrogate, isSupplementaryCodePoint, join, notNull, toCharArray, toMap };
+/*!
+ * Copyright 2016 The ANTLR Project. All rights reserved.
+ * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
+ */
+/**
+ * Associate a property with a parse tree node. Useful with parse tree listeners
+ * that need to associate values with particular tree nodes, kind of like
+ * specifying a return value for the listener event method that visited a
+ * particular node. Example:
+ *
+ * ```
+ * ParseTreeProperty<Integer> values = new ParseTreeProperty<Integer>();
+ * values.put(tree, 36);
+ * int x = values.get(tree);
+ * values.removeFrom(tree);
+ * ```
+ *
+ * You would make one decl (values here) in the listener and use lots of times
+ * in your event methods.
+ */
+var ParseTreeProperty = /** @class */ (function () {
+    function ParseTreeProperty(name) {
+        if (name === void 0) { name = "ParseTreeProperty"; }
+        this._symbol = Symbol(name);
+    }
+    ParseTreeProperty.prototype.get = function (node) {
+        return node[this._symbol];
+    };
+    ParseTreeProperty.prototype.set = function (node, value) {
+        node[this._symbol] = value;
+    };
+    ParseTreeProperty.prototype.removeFrom = function (node) {
+        var result = node[this._symbol];
+        delete node[this._symbol];
+        return result;
+    };
+    return ParseTreeProperty;
+}());
+
+/*!
+ * Copyright 2016 The ANTLR Project. All rights reserved.
+ * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
+ */
+var ParseTreeWalker = /** @class */ (function () {
+    function ParseTreeWalker() {
+    }
+    ParseTreeWalker.prototype.walk = function (listener, t) {
+        var nodeStack = [];
+        var indexStack = [];
+        var currentNode = t;
+        var currentIndex = 0;
+        while (currentNode) {
+            // pre-order visit
+            if (currentNode instanceof ErrorNode) {
+                if (listener.visitErrorNode) {
+                    listener.visitErrorNode(currentNode);
+                }
+            }
+            else if (currentNode instanceof TerminalNode) {
+                if (listener.visitTerminal) {
+                    listener.visitTerminal(currentNode);
+                }
+            }
+            else {
+                this.enterRule(listener, currentNode);
+            }
+            // Move down to first child, if exists
+            if (currentNode.childCount > 0) {
+                nodeStack.push(currentNode);
+                indexStack.push(currentIndex);
+                currentIndex = 0;
+                currentNode = currentNode.getChild(0);
+                continue;
+            }
+            // No child nodes, so walk tree
+            do {
+                // post-order visit
+                if (currentNode instanceof RuleNode) {
+                    this.exitRule(listener, currentNode);
+                }
+                // No parent, so no siblings
+                if (nodeStack.length === 0) {
+                    currentNode = undefined;
+                    currentIndex = 0;
+                    break;
+                }
+                // Move to next sibling if possible
+                var last = nodeStack[nodeStack.length - 1];
+                currentIndex++;
+                currentNode = currentIndex < last.childCount ? last.getChild(currentIndex) : undefined;
+                if (currentNode) {
+                    break;
+                }
+                // No next sibling, so move up
+                currentNode = nodeStack.pop();
+                currentIndex = indexStack.pop();
+            } while (currentNode);
+        }
+    };
+    /**
+     * The discovery of a rule node, involves sending two events: the generic
+     * {@link ParseTreeListener#enterEveryRule} and a
+     * {@link RuleContext}-specific event. First we trigger the generic and then
+     * the rule specific. We to them in reverse order upon finishing the node.
+     */
+    ParseTreeWalker.prototype.enterRule = function (listener, r) {
+        var ctx = r.ruleContext;
+        if (listener.enterEveryRule) {
+            listener.enterEveryRule(ctx);
+        }
+        ctx.enterRule(listener);
+    };
+    ParseTreeWalker.prototype.exitRule = function (listener, r) {
+        var ctx = r.ruleContext;
+        ctx.exitRule(listener);
+        if (listener.exitEveryRule) {
+            listener.exitEveryRule(ctx);
+        }
+    };
+    return ParseTreeWalker;
+}());
+(function (ParseTreeWalker) {
+    ParseTreeWalker.DEFAULT = new ParseTreeWalker();
+})(ParseTreeWalker || (ParseTreeWalker = {}));
+
+/*!
+ * Copyright 2016 The ANTLR Project. All rights reserved.
+ * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
+ */
+
+/*!
+ * Copyright 2016 The ANTLR Project. All rights reserved.
+ * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
+ */
+
+export { ANTLRInputStream, ATN, ATNConfig, ATNConfigSet, ATNDeserializationOptions, ATNDeserializer, ATNSimulator, ATNState, ATNStateType, ATNType, AbstractParseTreeVisitor, AbstractPredicateTransition, AcceptStateInfo, ActionTransition, AmbiguityInfo, Array2DHashMap, Array2DHashSet, ArrayEqualityComparator, Arrays, AtomTransition, BailErrorStrategy, BasicBlockStartState, BasicState, BitSet, BlockEndState, BlockStartState, BufferedTokenStream, CharStreams, CodePointBuffer, CodePointCharStream, CommonToken, CommonTokenFactory, CommonTokenStream, ConflictInfo, ConsoleErrorListener, ContextSensitivityInfo, DFA, DFASerializer, DFAState, DecisionEventInfo, DecisionInfo, DecisionState, DefaultEqualityComparator, DefaultErrorStrategy, Dependents, DiagnosticErrorListener, EpsilonTransition, ErrorInfo, ErrorNode, FailedPredicateException, INVALID_ALT_NUMBER, InputMismatchException, IntStream, IntegerList, IntegerStack, InterpreterRuleContext, Interval, IntervalSet, InvalidState, LL1Analyzer, Lexer, LexerATNSimulator, LexerActionExecutor, LexerActionType, LexerChannelAction, LexerCustomAction, LexerDFASerializer, LexerIndexedCustomAction, LexerInterpreter, LexerModeAction, LexerMoreAction, LexerNoViableAltException, LexerPopModeAction, LexerPushModeAction, LexerSkipAction, LexerTypeAction, ListTokenSource, LookaheadEventInfo, LoopEndState, MultiMap, MurmurHash, NoViableAltException, NotSetTransition, ObjectEqualityComparator, OrderedATNConfigSet, ParseCancellationException, ParseInfo, ParseTreeProperty, ParseTreeWalker, Parser, ParserATNSimulator, ParserInterpreter, ParserRuleContext, PlusBlockStartState, PlusLoopbackState, PrecedencePredicateTransition, PredicateEvalInfo, PredicateTransition, PredictionContext, PredictionContextCache, PredictionMode, ProfilingATNSimulator, ProxyErrorListener, ProxyParserErrorListener, RangeTransition, RecognitionException, Recognizer, RewriteOperation, RuleContext, RuleContextWithAltNum, RuleDependency, RuleNode, RuleStartState, RuleStopState, RuleTransition, RuleVersion, SemanticContext, SetTransition, SimulatorState, SingletonPredictionContext, StarBlockStartState, StarLoopEntryState, StarLoopbackState, TerminalNode, Token, TokenStreamRewriter, TokensStartState, Transition, TransitionType, Trees, UUID, VocabularyImpl, WildcardTransition, createWithCodePoint, createWithCodePointRange, equals, escapeWhitespace, isHighSurrogate, isLowSurrogate, isSupplementaryCodePoint, join, notNull, toCharArray, toMap };
 //# sourceMappingURL=index.es.js.map

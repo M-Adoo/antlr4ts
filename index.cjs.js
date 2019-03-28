@@ -7887,7 +7887,7 @@ var ATNConfigSet = /** @class */ (function () {
  *  but with different ATN contexts (with same or different alts)
  *  meaning that state was reached via a different set of rule invocations.
  */
-var DFAState = /** @class */ (function () {
+exports.DFAState = /** @class */ (function () {
     /**
      * Constructs a new `DFAState`.
      *
@@ -8090,7 +8090,7 @@ var DFAState = /** @class */ (function () {
         return PredPrediction;
     }());
     DFAState.PredPrediction = PredPrediction;
-})(DFAState || (DFAState = {}));
+})(exports.DFAState || (exports.DFAState = {}));
 
 /*!
  * Copyright 2016 The ANTLR Project. All rights reserved.
@@ -8103,7 +8103,7 @@ exports.ATNSimulator = /** @class */ (function () {
     Object.defineProperty(ATNSimulator, "ERROR", {
         get: function () {
             if (!ATNSimulator._ERROR) {
-                ATNSimulator._ERROR = new DFAState(new ATNConfigSet());
+                ATNSimulator._ERROR = new exports.DFAState(new ATNConfigSet());
                 ATNSimulator._ERROR.stateNumber = exports.PredictionContext.EMPTY_FULL_STATE_KEY;
             }
             return ATNSimulator._ERROR;
@@ -8878,8 +8878,8 @@ var DFA = /** @class */ (function () {
         if (atnStartState instanceof StarLoopEntryState) {
             if (atnStartState.precedenceRuleDecision) {
                 isPrecedenceDfa = true;
-                this.s0 = new DFAState(new ATNConfigSet());
-                this.s0full = new DFAState(new ATNConfigSet());
+                this.s0 = new exports.DFAState(new ATNConfigSet());
+                this.s0full = new exports.DFAState(new ATNConfigSet());
             }
         }
         this.precedenceDfa = isPrecedenceDfa;
@@ -10980,13 +10980,13 @@ exports.LexerATNSimulator = /** @class */ (function (_super) {
          * should not contain any configurations with unevaluated predicates.
          */
         assert(!configs.hasSemanticContext);
-        var proposed = new DFAState(configs);
+        var proposed = new exports.DFAState(configs);
         var existing = this.atn.modeToDFA[this.mode].states.get(proposed);
         if (existing != null) {
             return existing;
         }
         configs.optimizeConfigs(this);
-        var newState = new DFAState(configs.clone(true));
+        var newState = new exports.DFAState(configs.clone(true));
         var firstConfigWithRuleStopState;
         try {
             for (var configs_1 = __values(configs), configs_1_1 = configs_1.next(); !configs_1_1.done; configs_1_1 = configs_1.next()) {
@@ -16621,11 +16621,11 @@ var ParserATNSimulator = /** @class */ (function (_super) {
             // (undefined, i) means alt i is the default prediction
             // if no (undefined, i), then no default prediction.
             if (ambigAlts != null && ambigAlts.get(i) && pred === exports.SemanticContext.NONE) {
-                pairs.push(new DFAState.PredPrediction(pred, i));
+                pairs.push(new exports.DFAState.PredPrediction(pred, i));
             }
             else if (pred !== exports.SemanticContext.NONE) {
                 containsPredicate = true;
-                pairs.push(new DFAState.PredPrediction(pred, i));
+                pairs.push(new exports.DFAState.PredPrediction(pred, i));
             }
         }
         if (!containsPredicate) {
@@ -17363,7 +17363,7 @@ var ParserATNSimulator = /** @class */ (function (_super) {
         return added;
     };
     ParserATNSimulator.prototype.createDFAState = function (dfa, configs) {
-        return new DFAState(configs);
+        return new exports.DFAState(configs);
     };
     ParserATNSimulator.prototype.reportAttemptingFullContext = function (dfa, conflictingAlts, conflictState, startIndex, stopIndex) {
         if (ParserATNSimulator.debug || ParserATNSimulator.retry_debug) {
@@ -27393,6 +27393,11 @@ function createWithCodePointRange(target, codePointFrom, codePointTo) {
  * Copyright 2016 The ANTLR Project. All rights reserved.
  * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
  */
+
+/*!
+ * Copyright 2016 The ANTLR Project. All rights reserved.
+ * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
+ */
 // ConvertTo-TS run at 2016-10-04T11:26:39.6568608-07:00
 /**
  * Validates that an argument is not `null` or `undefined`.
@@ -27417,6 +27422,269 @@ function notNull(parameterName, value) {
  * Copyright 2016 The ANTLR Project. All rights reserved.
  * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
  */
+var AbstractParseTreeVisitor = /** @class */ (function () {
+    function AbstractParseTreeVisitor() {
+    }
+    /**
+     * {@inheritDoc}
+     *
+     * The default implementation calls {@link ParseTree#accept} on the
+     * specified tree.
+     */
+    AbstractParseTreeVisitor.prototype.visit = function (tree) {
+        return tree.accept(this);
+    };
+    /**
+     * {@inheritDoc}
+     *
+     * The default implementation initializes the aggregate result to
+     * {@link #defaultResult defaultResult()}. Before visiting each child, it
+     * calls {@link #shouldVisitNextChild shouldVisitNextChild}; if the result
+     * is `false` no more children are visited and the current aggregate
+     * result is returned. After visiting a child, the aggregate result is
+     * updated by calling {@link #aggregateResult aggregateResult} with the
+     * previous aggregate result and the result of visiting the child.
+     *
+     * The default implementation is not safe for use in visitors that modify
+     * the tree structure. Visitors that modify the tree should override this
+     * method to behave properly in respect to the specific algorithm in use.
+     */
+    AbstractParseTreeVisitor.prototype.visitChildren = function (node) {
+        var result = this.defaultResult();
+        var n = node.childCount;
+        for (var i = 0; i < n; i++) {
+            if (!this.shouldVisitNextChild(node, result)) {
+                break;
+            }
+            var c = node.getChild(i);
+            var childResult = c.accept(this);
+            result = this.aggregateResult(result, childResult);
+        }
+        return result;
+    };
+    /**
+     * {@inheritDoc}
+     *
+     * The default implementation returns the result of
+     * {@link #defaultResult defaultResult}.
+     */
+    AbstractParseTreeVisitor.prototype.visitTerminal = function (node) {
+        return this.defaultResult();
+    };
+    /**
+     * {@inheritDoc}
+     *
+     * The default implementation returns the result of
+     * {@link #defaultResult defaultResult}.
+     */
+    AbstractParseTreeVisitor.prototype.visitErrorNode = function (node) {
+        return this.defaultResult();
+    };
+    /**
+     * Aggregates the results of visiting multiple children of a node. After
+     * either all children are visited or {@link #shouldVisitNextChild} returns
+     * `false`, the aggregate value is returned as the result of
+     * {@link #visitChildren}.
+     *
+     * The default implementation returns `nextResult`, meaning
+     * {@link #visitChildren} will return the result of the last child visited
+     * (or return the initial value if the node has no children).
+     *
+     * @param aggregate The previous aggregate value. In the default
+     * implementation, the aggregate value is initialized to
+     * {@link #defaultResult}, which is passed as the `aggregate` argument
+     * to this method after the first child node is visited.
+     * @param nextResult The result of the immediately preceeding call to visit
+     * a child node.
+     *
+     * @returns The updated aggregate result.
+     */
+    AbstractParseTreeVisitor.prototype.aggregateResult = function (aggregate, nextResult) {
+        return nextResult;
+    };
+    /**
+     * This method is called after visiting each child in
+     * {@link #visitChildren}. This method is first called before the first
+     * child is visited; at that point `currentResult` will be the initial
+     * value (in the default implementation, the initial value is returned by a
+     * call to {@link #defaultResult}. This method is not called after the last
+     * child is visited.
+     *
+     * The default implementation always returns `true`, indicating that
+     * `visitChildren` should only return after all children are visited.
+     * One reason to override this method is to provide a "short circuit"
+     * evaluation option for situations where the result of visiting a single
+     * child has the potential to determine the result of the visit operation as
+     * a whole.
+     *
+     * @param node The {@link RuleNode} whose children are currently being
+     * visited.
+     * @param currentResult The current aggregate result of the children visited
+     * to the current point.
+     *
+     * @returns `true` to continue visiting children. Otherwise return
+     * `false` to stop visiting children and immediately return the
+     * current aggregate result from {@link #visitChildren}.
+     */
+    AbstractParseTreeVisitor.prototype.shouldVisitNextChild = function (node, currentResult) {
+        return true;
+    };
+    __decorate([
+        Override,
+        __param(0, NotNull)
+    ], AbstractParseTreeVisitor.prototype, "visit", null);
+    __decorate([
+        Override,
+        __param(0, NotNull)
+    ], AbstractParseTreeVisitor.prototype, "visitChildren", null);
+    __decorate([
+        Override,
+        __param(0, NotNull)
+    ], AbstractParseTreeVisitor.prototype, "visitTerminal", null);
+    __decorate([
+        Override,
+        __param(0, NotNull)
+    ], AbstractParseTreeVisitor.prototype, "visitErrorNode", null);
+    __decorate([
+        __param(0, NotNull)
+    ], AbstractParseTreeVisitor.prototype, "shouldVisitNextChild", null);
+    return AbstractParseTreeVisitor;
+}());
+
+/*!
+ * Copyright 2016 The ANTLR Project. All rights reserved.
+ * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
+ */
+/**
+ * Associate a property with a parse tree node. Useful with parse tree listeners
+ * that need to associate values with particular tree nodes, kind of like
+ * specifying a return value for the listener event method that visited a
+ * particular node. Example:
+ *
+ * ```
+ * ParseTreeProperty<Integer> values = new ParseTreeProperty<Integer>();
+ * values.put(tree, 36);
+ * int x = values.get(tree);
+ * values.removeFrom(tree);
+ * ```
+ *
+ * You would make one decl (values here) in the listener and use lots of times
+ * in your event methods.
+ */
+var ParseTreeProperty = /** @class */ (function () {
+    function ParseTreeProperty(name) {
+        if (name === void 0) { name = "ParseTreeProperty"; }
+        this._symbol = Symbol(name);
+    }
+    ParseTreeProperty.prototype.get = function (node) {
+        return node[this._symbol];
+    };
+    ParseTreeProperty.prototype.set = function (node, value) {
+        node[this._symbol] = value;
+    };
+    ParseTreeProperty.prototype.removeFrom = function (node) {
+        var result = node[this._symbol];
+        delete node[this._symbol];
+        return result;
+    };
+    return ParseTreeProperty;
+}());
+
+/*!
+ * Copyright 2016 The ANTLR Project. All rights reserved.
+ * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
+ */
+exports.ParseTreeWalker = /** @class */ (function () {
+    function ParseTreeWalker() {
+    }
+    ParseTreeWalker.prototype.walk = function (listener, t) {
+        var nodeStack = [];
+        var indexStack = [];
+        var currentNode = t;
+        var currentIndex = 0;
+        while (currentNode) {
+            // pre-order visit
+            if (currentNode instanceof ErrorNode) {
+                if (listener.visitErrorNode) {
+                    listener.visitErrorNode(currentNode);
+                }
+            }
+            else if (currentNode instanceof TerminalNode) {
+                if (listener.visitTerminal) {
+                    listener.visitTerminal(currentNode);
+                }
+            }
+            else {
+                this.enterRule(listener, currentNode);
+            }
+            // Move down to first child, if exists
+            if (currentNode.childCount > 0) {
+                nodeStack.push(currentNode);
+                indexStack.push(currentIndex);
+                currentIndex = 0;
+                currentNode = currentNode.getChild(0);
+                continue;
+            }
+            // No child nodes, so walk tree
+            do {
+                // post-order visit
+                if (currentNode instanceof RuleNode) {
+                    this.exitRule(listener, currentNode);
+                }
+                // No parent, so no siblings
+                if (nodeStack.length === 0) {
+                    currentNode = undefined;
+                    currentIndex = 0;
+                    break;
+                }
+                // Move to next sibling if possible
+                var last = nodeStack[nodeStack.length - 1];
+                currentIndex++;
+                currentNode = currentIndex < last.childCount ? last.getChild(currentIndex) : undefined;
+                if (currentNode) {
+                    break;
+                }
+                // No next sibling, so move up
+                currentNode = nodeStack.pop();
+                currentIndex = indexStack.pop();
+            } while (currentNode);
+        }
+    };
+    /**
+     * The discovery of a rule node, involves sending two events: the generic
+     * {@link ParseTreeListener#enterEveryRule} and a
+     * {@link RuleContext}-specific event. First we trigger the generic and then
+     * the rule specific. We to them in reverse order upon finishing the node.
+     */
+    ParseTreeWalker.prototype.enterRule = function (listener, r) {
+        var ctx = r.ruleContext;
+        if (listener.enterEveryRule) {
+            listener.enterEveryRule(ctx);
+        }
+        ctx.enterRule(listener);
+    };
+    ParseTreeWalker.prototype.exitRule = function (listener, r) {
+        var ctx = r.ruleContext;
+        ctx.exitRule(listener);
+        if (listener.exitEveryRule) {
+            listener.exitEveryRule(ctx);
+        }
+    };
+    return ParseTreeWalker;
+}());
+(function (ParseTreeWalker) {
+    ParseTreeWalker.DEFAULT = new ParseTreeWalker();
+})(exports.ParseTreeWalker || (exports.ParseTreeWalker = {}));
+
+/*!
+ * Copyright 2016 The ANTLR Project. All rights reserved.
+ * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
+ */
+
+/*!
+ * Copyright 2016 The ANTLR Project. All rights reserved.
+ * Licensed under the BSD-3-Clause license. See LICENSE file in the project root for license information.
+ */
 
 exports.ANTLRInputStream = ANTLRInputStream;
 exports.ATN = ATN;
@@ -27424,7 +27692,9 @@ exports.ATNConfig = ATNConfig;
 exports.ATNConfigSet = ATNConfigSet;
 exports.ATNDeserializationOptions = ATNDeserializationOptions;
 exports.ATNDeserializer = ATNDeserializer;
+exports.AbstractParseTreeVisitor = AbstractParseTreeVisitor;
 exports.AbstractPredicateTransition = AbstractPredicateTransition;
+exports.AcceptStateInfo = AcceptStateInfo;
 exports.ActionTransition = ActionTransition;
 exports.AmbiguityInfo = AmbiguityInfo;
 exports.Array2DHashMap = Array2DHashMap;
@@ -27444,6 +27714,8 @@ exports.CommonTokenStream = CommonTokenStream;
 exports.ConflictInfo = ConflictInfo;
 exports.ConsoleErrorListener = ConsoleErrorListener;
 exports.ContextSensitivityInfo = ContextSensitivityInfo;
+exports.DFA = DFA;
+exports.DFASerializer = DFASerializer;
 exports.DecisionEventInfo = DecisionEventInfo;
 exports.DecisionInfo = DecisionInfo;
 exports.DecisionState = DecisionState;
@@ -27452,6 +27724,7 @@ exports.DefaultErrorStrategy = DefaultErrorStrategy;
 exports.DiagnosticErrorListener = DiagnosticErrorListener;
 exports.EpsilonTransition = EpsilonTransition;
 exports.ErrorInfo = ErrorInfo;
+exports.ErrorNode = ErrorNode;
 exports.FailedPredicateException = FailedPredicateException;
 exports.INVALID_ALT_NUMBER = INVALID_ALT_NUMBER;
 exports.InputMismatchException = InputMismatchException;
@@ -27466,6 +27739,7 @@ exports.Lexer = Lexer;
 exports.LexerActionExecutor = LexerActionExecutor;
 exports.LexerChannelAction = LexerChannelAction;
 exports.LexerCustomAction = LexerCustomAction;
+exports.LexerDFASerializer = LexerDFASerializer;
 exports.LexerIndexedCustomAction = LexerIndexedCustomAction;
 exports.LexerInterpreter = LexerInterpreter;
 exports.LexerModeAction = LexerModeAction;
@@ -27482,6 +27756,7 @@ exports.ObjectEqualityComparator = ObjectEqualityComparator;
 exports.OrderedATNConfigSet = OrderedATNConfigSet;
 exports.ParseCancellationException = ParseCancellationException;
 exports.ParseInfo = ParseInfo;
+exports.ParseTreeProperty = ParseTreeProperty;
 exports.Parser = Parser;
 exports.ParserATNSimulator = ParserATNSimulator;
 exports.ParserInterpreter = ParserInterpreter;
@@ -27501,6 +27776,7 @@ exports.RewriteOperation = RewriteOperation;
 exports.RuleContext = RuleContext;
 exports.RuleContextWithAltNum = RuleContextWithAltNum;
 exports.RuleDependency = RuleDependency;
+exports.RuleNode = RuleNode;
 exports.RuleStartState = RuleStartState;
 exports.RuleStopState = RuleStopState;
 exports.RuleTransition = RuleTransition;
@@ -27511,9 +27787,11 @@ exports.SingletonPredictionContext = SingletonPredictionContext;
 exports.StarBlockStartState = StarBlockStartState;
 exports.StarLoopEntryState = StarLoopEntryState;
 exports.StarLoopbackState = StarLoopbackState;
+exports.TerminalNode = TerminalNode;
 exports.TokenStreamRewriter = TokenStreamRewriter;
 exports.TokensStartState = TokensStartState;
 exports.Transition = Transition;
+exports.Trees = Trees;
 exports.UUID = UUID;
 exports.VocabularyImpl = VocabularyImpl;
 exports.WildcardTransition = WildcardTransition;
