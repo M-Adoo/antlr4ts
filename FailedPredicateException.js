@@ -33,6 +33,7 @@ var FailedPredicateException = /** @class */ (function (_super) {
     __extends(FailedPredicateException, _super);
     function FailedPredicateException(recognizer, predicate, message) {
         var _this = _super.call(this, recognizer, recognizer.inputStream, recognizer.context, FailedPredicateException.formatMessage(predicate, message)) || this;
+        Object.setPrototypeOf(_this, FailedPredicateException.prototype);
         var s = recognizer.interpreter.atn.states[recognizer.state];
         var trans = s.transition(0);
         if (trans instanceof PredicateTransition) {

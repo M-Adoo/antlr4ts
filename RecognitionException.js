@@ -29,6 +29,8 @@ var RecognitionException = /** @class */ (function (_super) {
         if (recognizer) {
             _this._offendingState = recognizer.state;
         }
+        // see https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
+        Object.setPrototypeOf(_this, RecognitionException.prototype);
         return _this;
     }
     Object.defineProperty(RecognitionException.prototype, "offendingState", {

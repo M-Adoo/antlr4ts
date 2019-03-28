@@ -45,6 +45,7 @@ var NoViableAltException = /** @class */ (function (_super) {
             }
         }
         _this = _super.call(this, recognizer, input, ctx) || this;
+        Object.setPrototypeOf(_this, NoViableAltException.prototype);
         _this._deadEndConfigs = deadEndConfigs;
         _this._startToken = startToken;
         _this.setOffendingToken(recognizer, offendingToken);

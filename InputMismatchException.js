@@ -35,6 +35,7 @@ var InputMismatchException = /** @class */ (function (_super) {
             context = recognizer.context;
         }
         _this = _super.call(this, recognizer, recognizer.inputStream, context) || this;
+        Object.setPrototypeOf(_this, InputMismatchException.prototype);
         if (state !== undefined) {
             _this.setOffendingState(state);
         }

@@ -10213,6 +10213,8 @@
             if (recognizer) {
                 _this._offendingState = recognizer.state;
             }
+            // see https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
+            Object.setPrototypeOf(_this, RecognitionException.prototype);
             return _this;
         }
         Object.defineProperty(RecognitionException.prototype, "offendingState", {
@@ -10323,6 +10325,7 @@
         __extends(LexerNoViableAltException, _super);
         function LexerNoViableAltException(lexer, input, startIndex, deadEndConfigs) {
             var _this = _super.call(this, lexer, input) || this;
+            Object.setPrototypeOf(_this, LexerNoViableAltException.prototype);
             _this._startIndex = startIndex;
             _this._deadEndConfigs = deadEndConfigs;
             return _this;
@@ -14020,6 +14023,7 @@
                 }
             }
             _this = _super.call(this, recognizer, input, ctx) || this;
+            Object.setPrototypeOf(_this, NoViableAltException.prototype);
             _this._deadEndConfigs = deadEndConfigs;
             _this._startToken = startToken;
             _this.setOffendingToken(recognizer, offendingToken);
@@ -19255,6 +19259,7 @@
         __extends(FailedPredicateException, _super);
         function FailedPredicateException(recognizer, predicate, message) {
             var _this = _super.call(this, recognizer, recognizer.inputStream, recognizer.context, FailedPredicateException.formatMessage(predicate, message)) || this;
+            Object.setPrototypeOf(_this, FailedPredicateException.prototype);
             var s = recognizer.interpreter.atn.states[recognizer.state];
             var trans = s.transition(0);
             if (trans instanceof PredicateTransition) {
@@ -19320,6 +19325,7 @@
                 context = recognizer.context;
             }
             _this = _super.call(this, recognizer, recognizer.inputStream, context) || this;
+            Object.setPrototypeOf(_this, InputMismatchException.prototype);
             if (state !== undefined) {
                 _this.setOffendingState(state);
             }

@@ -29,6 +29,7 @@ var LexerNoViableAltException = /** @class */ (function (_super) {
     __extends(LexerNoViableAltException, _super);
     function LexerNoViableAltException(lexer, input, startIndex, deadEndConfigs) {
         var _this = _super.call(this, lexer, input) || this;
+        Object.setPrototypeOf(_this, LexerNoViableAltException.prototype);
         _this._startIndex = startIndex;
         _this._deadEndConfigs = deadEndConfigs;
         return _this;
