@@ -1,9 +1,9 @@
-import { ATN } from "../../../../src/atn/ATN";
-import { Parser } from "../../../../src/Parser";
-import { ParserRuleContext } from "../../../../src/ParserRuleContext";
-import { TerminalNode } from "../../../../src/tree/TerminalNode";
-import { TokenStream } from "../../../../src/TokenStream";
-import { Vocabulary } from "../../../../src/Vocabulary";
+import { ATN } from "../../../../src";
+import { Parser } from "../../../../src";
+import { ParserRuleContext } from "../../../../src";
+import { TerminalNode } from "../../../../src";
+import { TokenStream } from "../../../../src";
+import { Vocabulary } from "../../../../src";
 export declare class ParseTreeMatcherX2Parser extends Parser {
     static readonly T__0: number;
     static readonly T__1: number;

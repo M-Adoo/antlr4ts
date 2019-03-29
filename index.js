@@ -4,8 +4,8 @@
  */
 export * from "./ParserInterpreter";
 export * from "./Parser";
-// export * from "./ANTLRFileStream";
 export * from "./ANTLRInputStream";
+export * from "./BailErrorStrategy";
 export * from "./BufferedTokenStream";
 export * from "./CharStreams";
 export * from "./CodePointBuffer";
@@ -14,6 +14,7 @@ export * from "./CommonToken";
 export * from "./CommonTokenFactory";
 export * from "./CommonTokenStream";
 export * from "./ConsoleErrorListener";
+export * from "./Decorators";
 export * from "./DefaultErrorStrategy";
 export * from "./Dependents";
 export * from "./DiagnosticErrorListener";
@@ -38,7 +39,6 @@ export * from "./RuleVersion";
 export * from "./Token";
 export * from "./TokenStreamRewriter";
 export * from "./VocabularyImpl";
-export * from "./BailErrorStrategy";
 export * from "./atn";
 export * from "./dfa";
 export * from "./misc";

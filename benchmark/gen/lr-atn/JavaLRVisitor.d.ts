@@ -1,4 +1,4 @@
-import { ParseTreeVisitor } from "../../../src/tree/ParseTreeVisitor";
+import { ParseTreeVisitor } from "../../../src";
 import { CompilationUnitContext } from "./JavaLRParser";
 import { PackageDeclarationContext } from "./JavaLRParser";
 import { ImportDeclarationContext } from "./JavaLRParser";

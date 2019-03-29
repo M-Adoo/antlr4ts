@@ -1,4 +1,4 @@
-import { ParseTreeListener } from "../../../src/tree/ParseTreeListener";
+import { ParseTreeListener } from "../../../src";
 import { CompilationUnitContext } from "./JavaParser";
 import { PackageDeclarationContext } from "./JavaParser";
 import { ImportDeclarationContext } from "./JavaParser";

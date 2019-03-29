@@ -1,7 +1,7 @@
-import { ATN } from "../../../../src/atn/ATN";
-import { CharStream } from "../../../../src/CharStream";
-import { Lexer } from "../../../../src/Lexer";
-import { Vocabulary } from "../../../../src/Vocabulary";
+import { ATN } from "../../../../src";
+import { CharStream } from "../../../../src";
+import { Lexer } from "../../../../src";
+import { Vocabulary } from "../../../../src";
 export declare class RewriterLexer3 extends Lexer {
     static readonly ID: number;
     static readonly INT: number;

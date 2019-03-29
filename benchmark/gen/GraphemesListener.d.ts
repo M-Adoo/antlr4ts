@@ -1,4 +1,4 @@
-import { ParseTreeListener } from "../../src/tree/ParseTreeListener";
+import { ParseTreeListener } from "../../src";
 import { EmojiSequenceContext } from "./GraphemesParser";
 import { GraphemeClusterContext } from "./GraphemesParser";
 import { GraphemesContext } from "./GraphemesParser";

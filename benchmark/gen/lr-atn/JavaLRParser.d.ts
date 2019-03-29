@@ -1,10 +1,10 @@
-import { ATN } from "../../../src/atn/ATN";
-import { Parser } from "../../../src/Parser";
-import { ParserRuleContext } from "../../../src/ParserRuleContext";
-import { RuleContext } from "../../../src/RuleContext";
-import { TerminalNode } from "../../../src/tree/TerminalNode";
-import { TokenStream } from "../../../src/TokenStream";
-import { Vocabulary } from "../../../src/Vocabulary";
+import { ATN } from "../../../src";
+import { Parser } from "../../../src";
+import { ParserRuleContext } from "../../../src";
+import { RuleContext } from "../../../src";
+import { TerminalNode } from "../../../src";
+import { TokenStream } from "../../../src";
+import { Vocabulary } from "../../../src";
 import { JavaLRListener } from "./JavaLRListener";
 import { JavaLRVisitor } from "./JavaLRVisitor";
 export declare class JavaLRParser extends Parser {

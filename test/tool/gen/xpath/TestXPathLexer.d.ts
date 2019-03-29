@@ -1,7 +1,7 @@
-import { ATN } from "../../../../src/atn/ATN";
-import { CharStream } from "../../../../src/CharStream";
-import { Lexer } from "../../../../src/Lexer";
-import { Vocabulary } from "../../../../src/Vocabulary";
+import { ATN } from "../../../../src";
+import { CharStream } from "../../../../src";
+import { Lexer } from "../../../../src";
+import { Vocabulary } from "../../../../src";
 export declare class TestXPathLexer extends Lexer {
     static readonly T__0: number;
     static readonly T__1: number;
